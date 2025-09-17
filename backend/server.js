@@ -7,6 +7,7 @@ const cookieParser = require("cookie-parser");
 // Routers
 const usersRouter = require("./routes/userRouter");
 const authRouter = require("./routes/authRouter");
+const businessRouter = require("./routes/businessRouter")
 
 app.use(express.json());
 app.use(cookieParser());
@@ -14,6 +15,7 @@ app.use(cookieParser());
 // API routes
 app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
+app.use("/api/business", businessRouter);
 
 app.get("/", (_req, res) => {
 res.send("Hello and Welcome to Supporta!")

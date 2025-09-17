@@ -8,12 +8,13 @@ const getUsers = async (req, res) => {
   try {
     const users = await User.find({});
     if (users.length === 0)
-      return res.status(404).json({ msg: "There are no available users" });
+      return res.status(404).json({ msg: "There are no users available" });
     res.status(200).json(users);
   } catch (err) {
-    res
-      .status(err.status || 500)
-      .json({ msg: err.message || "Internal server error" });
+    res.status(500).json({
+      msg: "Internal server error",
+      err: process.env.NODE_ENV === "development" ? err.message : undefined,
+    });
   }
 };
 
@@ -27,9 +28,10 @@ const getUser = async (req, res) => {
 
     res.json(user);
   } catch (err) {
-    return res
-      .status(err.status || 500)
-      .json({ msg: err.message || "Internal server error" });
+    res.status(500).json({
+      msg: "Internal server error",
+      err: process.env.NODE_ENV === "development" ? err.message : undefined,
+    });
   }
 };
 
@@ -79,9 +81,10 @@ const updateUser = async (req, res) => {
     res.status(200).json(user);
   } catch (err) {
     await session.abortTransaction();
-    res
-      .status(err.status || 500)
-      .json({ msg: err.message || "Internal server error" });
+    res.status(500).json({
+      msg: "Internal server error",
+      err: process.env.NODE_ENV === "development" ? err.message : undefined,
+    });
   } finally {
     session.endSession();
   }
@@ -108,9 +111,10 @@ const deleteUser = async (req, res) => {
     res.status(200).json({ msg: "User and business deleted successfully" });
   } catch (err) {
     await session.abortTransaction();
-    return res
-      .status(err.status || 500)
-      .json({ msg: err.message || "Internal server error" });
+    res.status(500).json({
+      msg: "Internal server error",
+      err: process.env.NODE_ENV === "development" ? err.message : undefined,
+    });
   } finally {
     session.endSession();
   }
