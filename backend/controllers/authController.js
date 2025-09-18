@@ -61,7 +61,7 @@ const registerUser = async (req, res) => {
     await session.commitTransaction();
 
     // Generate token and refresh token
-    const payload = { id: newUser._id, email: newUser.email };
+    const payload = { id: newUser._id, email: newUser.email, businessId: newUser.businessId };
     const accessToken = generateToken(payload);
     const refreshToken = generateRefreshToken(payload);
 
@@ -89,7 +89,7 @@ const registerUser = async (req, res) => {
 };
 
 const loginUser = async (req, res) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, businessId } = req.body;
 
   const user = await User.findOne({ $or: [{ username }, { email }] });
   if (!user) return res.status(400).json({ msg: "User not found" });
@@ -98,7 +98,7 @@ const loginUser = async (req, res) => {
   if (!isMatch)
     return res.status(400).json({ msg: "Wrong username or password" });
 
-  const payload = { id: user._id, email: user.email };
+  const payload = { id: user._id, email: user.email, businessId: user.businessId };
   const accessToken = generateToken(payload);
   const refreshToken = generateRefreshToken(payload);
 
@@ -125,6 +125,7 @@ const refreshUserToken = async (req, res) => {
     const accessToken = generateToken({
       _id: verifiedUser.id,
       username: verifiedUser.username,
+      businessId: verifiedUser.businessId
     });
 
     res.json({ accessToken });
