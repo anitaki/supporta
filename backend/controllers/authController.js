@@ -61,7 +61,11 @@ const registerUser = async (req, res) => {
     await session.commitTransaction();
 
     // Generate token and refresh token
-    const payload = { id: newUser._id, email: newUser.email, businessId: newUser.businessId };
+    const payload = {
+      id: newUser._id,
+      email: newUser.email,
+      businessId: newUser.businessId,
+    };
     const accessToken = generateToken(payload);
     const refreshToken = generateRefreshToken(payload);
 
@@ -72,8 +76,11 @@ const registerUser = async (req, res) => {
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     });
 
+    const userObj = newUser.toObject();
+    delete userObj.password;
+
     await res.status(201).json({
-      user: newUser,
+      user: userObj,
       accessToken: accessToken,
       refreshToken: refreshToken,
     });
@@ -89,16 +96,20 @@ const registerUser = async (req, res) => {
 };
 
 const loginUser = async (req, res) => {
-  const { username, email, password, businessId } = req.body;
+  const { username, email, password } = req.body;
 
-  const user = await User.findOne({ $or: [{ username }, { email }] });
+  const user = await User.findOne({ $or: [{ username }, { email }]});
   if (!user) return res.status(400).json({ msg: "User not found" });
 
-  const isMatch = await user.comparePassword(password, user.password);
+  const isMatch = await user.comparePassword(password);
   if (!isMatch)
     return res.status(400).json({ msg: "Wrong username or password" });
 
-  const payload = { id: user._id, email: user.email, businessId: user.businessId };
+  const payload = {
+    id: user._id,
+    email: user.email,
+    businessId: user.businessId,
+  };
   const accessToken = generateToken(payload);
   const refreshToken = generateRefreshToken(payload);
 
@@ -124,8 +135,8 @@ const refreshUserToken = async (req, res) => {
 
     const accessToken = generateToken({
       _id: verifiedUser.id,
-      username: verifiedUser.username,
-      businessId: verifiedUser.businessId
+      email: verifiedUser.email,
+      businessId: verifiedUser.businessId,
     });
 
     res.json({ accessToken });
@@ -149,12 +160,10 @@ const logoutUser = async (req, res) => {
 
     res.json({ msg: "Logged out successfully" });
   } catch (err) {
-    res
-      .status(500)
-      .json({
-        msg: "Internal server error",
-        err: process.env.NODE_ENV === "development" ? err.message : undefined,
-      });
+    res.status(500).json({
+      msg: "Internal server error",
+      err: process.env.NODE_ENV === "development" ? err.message : undefined,
+    });
   }
 };
 
@@ -168,12 +177,10 @@ const getMe = async (req, res) => {
 
     res.json(user);
   } catch (err) {
-    res
-      .status(500)
-      .json({
-        msg: "Internal server error",
-        err: process.env.NODE_ENV === "development" ? err.message : undefined,
-      });
+    res.status(500).json({
+      msg: "Internal server error",
+      err: process.env.NODE_ENV === "development" ? err.message : undefined,
+    });
   }
 };
 

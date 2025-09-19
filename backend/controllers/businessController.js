@@ -1,4 +1,5 @@
 const Business = require("../models/businessModel");
+const User = require("../models/userModel");
 const { validationResult } = require("express-validator");
 const validateObjectId = require("../validations/objectIdValidation");
 
@@ -76,5 +77,6 @@ const deleteBusiness = async (req, res) => {
     });
   }
 };
+
 
 module.exports = { getBusinesses, getBusiness, updateBusiness, deleteBusiness };

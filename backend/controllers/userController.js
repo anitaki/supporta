@@ -4,12 +4,39 @@ const validateObjectId = require("../validations/objectIdValidation");
 const mongoose = require("mongoose");
 const Business = require("../models/businessModel");
 
-const getUsers = async (req, res) => {
+// For development purposes only - get all users
+const getAllUsers = async (req, res) => {
   try {
     const users = await User.find({});
     if (users.length === 0)
       return res.status(404).json({ msg: "There are no users available" });
-    res.status(200).json(users);
+    res
+      .status(200)
+      .json(
+        process.env.NODE_ENV === "development"
+          ? users
+          : { message: "Restricted" }
+      );
+  } catch (err) {
+    res.status(500).json({
+      msg: "Internal server error",
+      err: process.env.NODE_ENV === "development" ? err.message : undefined,
+    });
+  }
+};
+
+const getUsers = async (req, res) => {
+  try {
+    const users = await User.find({businessId: req.user.businessId});
+    if (users.length === 0)
+      return res.status(404).json({ msg: "There are no users available" });
+    res
+      .status(200)
+      .json(
+        process.env.NODE_ENV === "development"
+          ? users
+          : { message: "Restricted" }
+      );
   } catch (err) {
     res.status(500).json({
       msg: "Internal server error",
@@ -23,7 +50,7 @@ const getUser = async (req, res) => {
     const validatedId = validateObjectId(req.params.id);
     if (!validatedId) return res.status(400).json({ msg: "Bad request" });
 
-    const user = await User.findById(req.params.id);
+    const user = await User.findOne({_id: req.params.id, businessId: req.user.businessId}).select("-password").populate("businessId");
     if (!user) return res.status(404).json({ msg: "User not found" });
 
     res.json(user);
@@ -46,8 +73,9 @@ const updateUser = async (req, res) => {
     if (!validateObjectId(req.params.id))
       return res.status(400).json({ msg: "Invalid user ID" });
 
-    const user = await User.findById(req.params.id);
+    const user = await User.findOne({_id: req.params.id, businessId: req.user.businessId})
     if (!user) return res.status(404).json({ msg: "User not found" });
+    console.log(user)
 
     const allowedUpdates = [
       "firstName",
@@ -67,7 +95,7 @@ const updateUser = async (req, res) => {
 
     // Check if business name has changed and save
     if (req.body.businessName) {
-      const business = await Business.findOne({ owner: req.params.id });
+      const business = await Business.findOne({_id: req.user.businessId, owner: req.user.id });
 
       business.name = req.body.businessName;
       await business.save({ session });
@@ -75,6 +103,8 @@ const updateUser = async (req, res) => {
       user.businessId = business._id;
       await user.save({ session });
     }
+
+    await user.populate("businessId");
 
     await session.commitTransaction();
 
@@ -98,7 +128,7 @@ const deleteUser = async (req, res) => {
     const validatedId = validateObjectId(req.params.id);
     if (!validatedId) return res.status(400).json({ msg: "Bad request" });
 
-    const user = await User.findById(req.params.id);
+    const user = await User.findOne({_id: req.params.id, businessId: req.user.businessId});
     if (!user) return res.status(404).json({ msg: "User doesn't exist" });
     const business = await Business.findById(user.businessId);
     if (!business) return res.status(404).json({ msg: "Business not found" });
@@ -121,6 +151,7 @@ const deleteUser = async (req, res) => {
 };
 
 module.exports = {
+  getAllUsers,
   getUsers,
   getUser,
   updateUser,
