@@ -27,16 +27,10 @@ const getAllUsers = async (req, res) => {
 
 const getUsers = async (req, res) => {
   try {
-    const users = await User.find({businessId: req.user.businessId});
+    const users = await User.find({ businessId: req.user.businessId });
     if (users.length === 0)
       return res.status(404).json({ msg: "There are no users available" });
-    res
-      .status(200)
-      .json(
-        process.env.NODE_ENV === "development"
-          ? users
-          : { message: "Restricted" }
-      );
+    res.status(200).json(users);
   } catch (err) {
     res.status(500).json({
       msg: "Internal server error",
@@ -50,7 +44,12 @@ const getUser = async (req, res) => {
     const validatedId = validateObjectId(req.params.id);
     if (!validatedId) return res.status(400).json({ msg: "Bad request" });
 
-    const user = await User.findOne({_id: req.params.id, businessId: req.user.businessId}).select("-password").populate("businessId");
+    const user = await User.findOne({
+      _id: req.params.id,
+      businessId: req.user.businessId,
+    })
+      .select("-password")
+      .populate("businessId");
     if (!user) return res.status(404).json({ msg: "User not found" });
 
     res.json(user);
@@ -73,9 +72,11 @@ const updateUser = async (req, res) => {
     if (!validateObjectId(req.params.id))
       return res.status(400).json({ msg: "Invalid user ID" });
 
-    const user = await User.findOne({_id: req.params.id, businessId: req.user.businessId})
+    const user = await User.findOne({
+      _id: req.params.id,
+      businessId: req.user.businessId,
+    });
     if (!user) return res.status(404).json({ msg: "User not found" });
-    console.log(user)
 
     const allowedUpdates = [
       "firstName",
@@ -95,7 +96,10 @@ const updateUser = async (req, res) => {
 
     // Check if business name has changed and save
     if (req.body.businessName) {
-      const business = await Business.findOne({_id: req.user.businessId, owner: req.user.id });
+      const business = await Business.findOne({
+        _id: req.user.businessId,
+        owner: req.user.id,
+      });
 
       business.name = req.body.businessName;
       await business.save({ session });
@@ -128,7 +132,10 @@ const deleteUser = async (req, res) => {
     const validatedId = validateObjectId(req.params.id);
     if (!validatedId) return res.status(400).json({ msg: "Bad request" });
 
-    const user = await User.findOne({_id: req.params.id, businessId: req.user.businessId});
+    const user = await User.findOne({
+      _id: req.params.id,
+      businessId: req.user.businessId,
+    });
     if (!user) return res.status(404).json({ msg: "User doesn't exist" });
     const business = await Business.findById(user.businessId);
     if (!business) return res.status(404).json({ msg: "Business not found" });

@@ -3,9 +3,10 @@ require("dotenv").config();
 
 const generateToken = (user) => {
   const userId = user._id || user.id; 
-  console.log(user)
+
   return jwt.sign(
-    { id: userId, username: user.username, businessId: user.businessId },
+    // { id: userId, username: user.username, businessId: user.businessId },
+    user,
     process.env.ACCESS_TOKEN_SECRET,
     { expiresIn: process.env.TOKEN_EXPIRATION }
   );
@@ -14,7 +15,8 @@ const generateToken = (user) => {
 const generateRefreshToken = (user) => {
   const userId = user._id || user.id; 
   return jwt.sign(
-    {  id: userId, username: user.username, businessId: user.businessId },
+    // {  id: userId, username: user.username, businessId: user.businessId },
+    user,
     process.env.REFRESH_TOKEN_SECRET,
     { expiresIn: process.env.REFRESH_TOKEN_EXPIRATION }
   );

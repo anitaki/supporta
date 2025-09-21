@@ -8,6 +8,7 @@ const cookieParser = require("cookie-parser");
 const usersRouter = require("./routes/userRouter");
 const authRouter = require("./routes/authRouter");
 const businessRouter = require("./routes/businessRouter")
+const qaRouter = require("./routes/qaRouter")
 
 app.use(express.json());
 app.use(cookieParser());
@@ -16,9 +17,10 @@ app.use(cookieParser());
 app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/business", businessRouter);
+app.use("/api/qa", qaRouter);
 
 app.get("/", (_req, res) => {
-res.send("Hello and Welcome to Supporta!")
+res.send("Hello and Welcome to Supporta !")
 })
 
 app.listen(process.env.PORT, () => {
