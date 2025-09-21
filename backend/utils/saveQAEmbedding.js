@@ -7,20 +7,20 @@ const QA = require("../models/qaModel");
  * @param {ObjectId} businessId - the businessId of the tenant from req.user
  */
 
-const saveQAEmbedding = async function (qaId, embedding, businessId) {
+const saveQAEmbedding = async function (qaId, embedding, businessId, session = null) {
   try {
     const qa = await QA.findOneAndUpdate(
       { _id: qaId, businessId },
       { embedding },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true, session }
     );
 
     if (!qa) return res.status(404).json({ msg: "Q&A not found" });
 
     return qa;
   } catch (err) {
-     console.error("Error saving embedding:", error.message);
-    throw error;
+     console.error("Error saving embedding:", err.message);
+    throw err;
   }
 };
 
