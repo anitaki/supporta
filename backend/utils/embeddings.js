@@ -5,17 +5,17 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-async function createEmbedding(qa) {
-  const text = qa.question + "\n" + qa.answer;
+async function createEmbedding(input) {
+  typeof input === "string"
+    ? (text = input) // for texts and queries
+    : (text = qa.question + "\n" + qa.answer); // for Q&A format
 
   const response = await openai.embeddings.create({
     model: "text-embedding-3-small",
     input: text,
   });
 
-  return response.data[0].embedding; // array of numbers
+  return response.data[0].embedding;
 }
 
 module.exports = { createEmbedding };
-
-
