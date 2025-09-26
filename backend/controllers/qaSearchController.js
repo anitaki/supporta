@@ -48,7 +48,7 @@ const searchQAs = async (req, res) => {
     {
       role: "system",
       content:
-        "You are a helpful support assistant. Answer only using the provided context. If the answer is not in the context, say you don't know politely.",
+        "You are a helpful support assistant. Answer only using the provided context. Your answers should be polite and well spoken. If the answer is not in the context, say you don't know politely.",
     },
     {
       role: "user",

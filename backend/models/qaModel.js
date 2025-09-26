@@ -23,12 +23,12 @@ const qaSchema = new Schema(
       default: "manual",
     },
     businessId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "Business",
       required: true,
     },
     createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
     },
     embedding: {

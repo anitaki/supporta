@@ -14,7 +14,6 @@ async function createEmbedding(input) {
     model: "text-embedding-3-small",
     input: text,
   });
-  console.log("🚀 ~ createEmbedding ~ response:", response)
 
   return response.data[0].embedding;
 }
