@@ -5,7 +5,7 @@ const { validationResult } = require("express-validator");
 const validateObjectId = require("../validations/objectIdValidation");
 const saveQAEmbedding = require("../utils/saveQAEmbedding");
 const { createEmbedding } = require("../utils/embeddings");
-const { mongoose } = require("mongoose");
+const mongoose  = require("mongoose");
 
 // Get all Q&As
 const getQAs = async (req, res) => {
@@ -60,6 +60,7 @@ const postQA = async (req, res) => {
 
     // Create and save the embedding
     const embedding = await createEmbedding(qa);
+    console.log("🚀 ~ postQA ~ embedding:", embedding)
     if (!embedding || !Array.isArray(embedding) || embedding.length === 0)
       return res.status(400).json({ msg: "Error embedding your text" });
     await saveQAEmbedding(qa._id, embedding, req.user.businessId, session);
