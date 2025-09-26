@@ -32,9 +32,13 @@ const qaSchema = new Schema(
       ref: "User",
     },
     embedding: {
-        type: [Number],
-        required: false
-    }
+      type: [Number],
+      required: false,
+    },
+    fileUrl: {
+      type: String,
+      required: false,
+    },
   },
   { timestamps: true }
 );

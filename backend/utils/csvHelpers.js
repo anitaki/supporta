@@ -2,7 +2,6 @@ const csv = require("csv-parser");
 const fs = require("fs");
 
 const path = require("path");
-const filePath = path.join(__dirname, "../data/miltos.csv");
 
 const results = [];
 
@@ -36,12 +35,20 @@ function detectSeparator(filePath) {
  * @returns {Promise<Array>} normalized rows
  */
 function parseCSV(filePath) {
+  // Clean BOM / invalid chars once before parsing
+  let content = fs.readFileSync(filePath);
+  content = content.toString("utf8").replace(/\uFFFD/g, "");
+  fs.writeFileSync(filePath, content);
+
+  const results = [];
+  const separator = detectSeparator(filePath);
+
   return new Promise((resolve, reject) => {
     fs.createReadStream(filePath)
       // pipe into csv-parser (transform stream)
       .pipe(
         csv({
-          separator: detectSeparator(filePath),
+          separator,
           mapHeaders: ({ header }) =>
             header
               .replace(/^\ufeff/, "") // remove BOM
@@ -51,14 +58,16 @@ function parseCSV(filePath) {
       )
       .on("data", (data) => {
         const normalizedData = normalizeRow(data);
+        const fileBuffer = fs.readFileSync(filePath);
+        const content = fileBuffer.toString("utf8").replace(/\uFFFD/g, "");
+        fs.writeFileSync(filePath, content);
         results.push(normalizedData);
       })
       .on("end", () => {
-        console.log(results);
         resolve(results);
       })
       .on("error", (err) => reject(err));
   });
 }
 
-module.exports = {normalizeRow, detectSeparator, parseCSV }
+module.exports = { parseCSV };

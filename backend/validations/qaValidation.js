@@ -13,7 +13,7 @@ validateQA = [
     .withMessage("Question is required")
     .isString()
     .withMessage("Question must be a string")
-    .isLength({ min: 5, max: 2000 })
+    .isLength({ min: 1, max: 2000 })
     .withMessage("Question must be between 5–2000 characters")
     .trim(),
     body("source")

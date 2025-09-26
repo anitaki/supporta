@@ -3,7 +3,7 @@ const { validationResult } = require("express-validator");
 const validateObjectId = require("../validations/objectIdValidation");
 const saveQAEmbedding = require("../utils/saveQAEmbedding");
 const { createEmbedding } = require("../utils/embeddings");
-const mongoose  = require("mongoose");
+const mongoose = require("mongoose");
 
 // Get all Q&As
 const getQAs = async (req, res) => {

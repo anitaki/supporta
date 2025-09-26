@@ -9,7 +9,7 @@ const usersRouter = require("./routes/userRouter");
 const authRouter = require("./routes/authRouter");
 const businessRouter = require("./routes/businessRouter");
 const qaRouter = require("./routes/qaRouter");
-const uploadCsvRouter = require("./routes/uploadCsvRouter")
+const uploadsRouter = require("./routes/uploadsRouter")
 
 app.use(express.json());
 app.use(cookieParser());
@@ -19,7 +19,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/business", businessRouter);
 app.use("/api/qa", qaRouter);
-app.use("/api/upload-csv", uploadCsvRouter)
+app.use("/api/upload", uploadsRouter)
 
 
 app.get("/", (_req, res) => {
