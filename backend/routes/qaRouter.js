@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const { getQAs, getAQ, postQA, updateQA, deleteQA } = require("../controllers/qaController");
-const searchQAs = require("../controllers/qaSearchController")
+const searchQAs = require("../controllers/searchController")
 
 const authenticateToken = require("../middleware/authToken");
 const validateQA = require("../validations/qaValidation");
