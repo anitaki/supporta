@@ -6,9 +6,9 @@ const { getBusinesses, getBusiness, updateBusiness, deleteBusiness } = require("
 const authenticateToken = require("../middleware/authToken");
 const validateBusiness = require("../validations/businessValidation");
 
-router.get("/", authenticateToken, getBusinesses);
-router.get("/:id", authenticateToken, getBusiness);
-router.patch("/:id", authenticateToken, validateBusiness, updateBusiness);
+router.get("/all", authenticateToken, getBusinesses);
+router.get("/", authenticateToken, getBusiness);
+router.patch("/", authenticateToken, validateBusiness, updateBusiness);
 // router.delete("/:id", authenticateToken, deleteBusiness);  // for now only from user delete
 
 module.exports = router;

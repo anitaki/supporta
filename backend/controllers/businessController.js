@@ -19,10 +19,10 @@ const getBusinesses = async (req, res) => {
 
 const getBusiness = async (req, res) => {
   try {
-    const validatedId = await validateObjectId(req.params.id);
-    if (!validatedId) return res.status(400).json({ msg: "Bad request" });
-
-    const business = await Business.findOne({ _id: req.params.id });
+    const business = await Business.findOne({
+      _id: req.user.businessId,
+      owner: req.user.id,
+    });
     if (!business) return res.status(404).json({ msg: "Business not found" });
 
     business.populate("owner");
@@ -38,12 +38,11 @@ const getBusiness = async (req, res) => {
 
 const updateBusiness = async (req, res) => {
   try {
-    const validatedId = await validateObjectId(req.params.id);
-    if (!validatedId) return res.status(400).json({ msg: "Bad request" });
-
-    const business = await Business.findByIdAndUpdate(req.params.id, {
-      name: req.body.name
-    }, {new: true});
+    const business = await Business.findByIdAndUpdate(
+   { _id: req.user.businessId },
+  { name: req.body.name },
+  { new: true }
+    );
     if (!business) return res.status(404).json({ msg: "Business not found" });
 
     business.populate("owner");
@@ -57,19 +56,15 @@ const updateBusiness = async (req, res) => {
   }
 };
 
-
-// Not to be used for now. 
+// Not to be used for now.
 // For now, business is created with the new user and is deleted when user is deleted
 
 const deleteBusiness = async (req, res) => {
   try {
-    const validatedId = await validateObjectId(req.params.id);
-    if (!validatedId) return res.status(400).json({ msg: "Bad request" });
-
-    const business = await Business.findByIdAndDelete(req.params.id);
+    const business = await Business.findByIdAndDelete(req.user.businessId);
     if (!business) return res.status(404).json({ msg: "Business not found" });
 
-    return res.status(200).json({msg: "Business was deleted successfully"});
+    return res.status(200).json({ msg: "Business was deleted successfully" });
   } catch (err) {
     res.status(500).json({
       msg: "Internal server error",
@@ -77,6 +72,5 @@ const deleteBusiness = async (req, res) => {
     });
   }
 };
-
 
 module.exports = { getBusinesses, getBusiness, updateBusiness, deleteBusiness };
