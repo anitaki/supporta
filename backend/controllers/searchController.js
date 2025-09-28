@@ -4,10 +4,17 @@ const DocumentChunk = require("../models/documentChunkModel");
 const { createEmbedding } = require("../utils/embedUtils");
 const mongoose = require("mongoose");
 const OpenAI = require("openai");
+const moderateUserInput = require("../utils/openaiUtils");
 
 const searchQAs = async (req, res) => {
   const { q } = req.query;
   if (!q) return res.status(400).json({ msg: "Query is required" });
+
+  const moderationWarning = await moderateUserInput(q);
+  console.log("🚀 ~ searchQAs ~ moderationWarning:", moderationWarning)
+  if (moderationWarning) {
+    return res.status(400).json({ msg: moderationWarning });
+  }
 
   // Embed user query
   const queryEmbedding = await createEmbedding(q);
@@ -61,12 +68,12 @@ const searchQAs = async (req, res) => {
     },
   ]);
 
-    // --- Fetch file info for chunks ---
-  const fileIds = chunkResults.map(c => c.fileId);
+  // --- Fetch file info for chunks ---
+  const fileIds = chunkResults.map((c) => c.fileId);
   const files = await File.find({ _id: { $in: fileIds } });
-  const chunksWithFile = chunkResults.map(c => ({
+  const chunksWithFile = chunkResults.map((c) => ({
     ...c,
-    file: files.find(f => f._id.equals(c.fileId)),
+    file: files.find((f) => f._id.equals(c.fileId)),
   }));
 
   // --- Search Images ---
@@ -80,7 +87,7 @@ const searchQAs = async (req, res) => {
         limit: 5,
         filter: {
           businessId: new mongoose.Types.ObjectId(req.user.businessId),
-          type: "image"
+          type: "image",
         },
       },
     },
@@ -102,24 +109,41 @@ const searchQAs = async (req, res) => {
 
   const combinedResults = [...qaResults, ...chunksWithFile, ...imageResults];
 
-const context = combinedResults
-  .map(res => {
-    if (res.type === "qa") return `Q: ${res.question}\nA: ${res.answer}`;
-    if (res.type === "chunk") return `Document: ${res.file?.title}\nContent: ${res.text}`;
-    if(res.type === "image") return `Title: ${res.title}\nDescription: ${res?.description}\nURL: ${res.url}`
-  })
-  .join("\n");
+  const context = combinedResults
+    .map((res) => {
+      if (res.type === "qa") return `Q: ${res.question}\nA: ${res.answer}`;
+      if (res.type === "chunk")
+        return `Document: ${res.file?.title}\nContent: ${res.text}`;
+      if (res.type === "image")
+        return `Title: ${res.title}\nDescription: ${res?.description}\nURL: ${res.url}`;
+    })
+    .filter(Boolean)
+    .join("\n");
 
   const messages = [
     {
       role: "system",
       content: `You are a helpful support assistant.
 
-- Use the provided context to answer the user's question, even if the wording or language is different.
-- If the context is in a different language, translate or adapt it so that your final answer matches the language of the user’s question. Also translate any names product names or special terms.
-- Combine information from multiple context entries if useful.
-- Be concise, polite, and clear.
-- If there is truly no relevant information in the context, say you don’t know politely.`,
+LANGUAGE RULES (CRITICAL):
+- ALWAYS detect the language of the user's question first
+- ALWAYS respond in the EXACT same language as the user's question
+- If user asks in English, respond ONLY in English
+- If user asks in Greek, respond ONLY in Greek
+- NEVER mix languages in your response
+- Even if all context/documentation is in Greek, if the user asks in English, translate everything to English
+- Translate product names, terms, and all information to match the user's language
+- If context is in different language than user's question, translate the relevant information
+
+ANSWER GUIDELINES:
+- Use the provided context to answer the user's question
+- Combine information from multiple context entries if useful
+- Be concise, polite, and clear
+- If no relevant information exists in context, politely say you don't know (in the user's language)
+
+EXAMPLES:
+- User asks "opening hours?" → Respond in English: "I couldn't find information about opening hours..."
+- User asks "ώρες λειτουργίας;" → Respond in Greek: "Δεν βρήκα πληροφορίες για τις ώρες λειτουργίας..."`,
     },
     {
       role: "user",
@@ -133,10 +157,8 @@ const context = combinedResults
   const response = await openai.responses.create({
     model: "gpt-4o-mini-2024-07-18",
     input: messages,
-    temperature: 1.1,
+    temperature: 1,
   });
-
-  console.log(combinedResults);
 
   res.json(response.output_text);
 };
