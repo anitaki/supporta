@@ -1,8 +1,7 @@
 const QA = require("../models/qaModel");
 const { validationResult } = require("express-validator");
 const validateObjectId = require("../validations/objectIdValidation");
-const saveQAEmbedding = require("../utils/saveQAEmbedding");
-const { createEmbedding } = require("../utils/embeddings");
+const { createEmbedding, saveEmbedding } = require("../utils/embedUtils");
 const mongoose = require("mongoose");
 
 // Get all Q&As
@@ -60,7 +59,7 @@ const postQA = async (req, res) => {
     const embedding = await createEmbedding(qa);
     if (!embedding || !Array.isArray(embedding) || embedding.length === 0)
       return res.status(400).json({ msg: "Error embedding your text" });
-    await saveQAEmbedding(qa._id, embedding, req.user.businessId, session);
+    await saveEmbedding(QA, qa._id, embedding, req.user.businessId, session);
 
     await session.commitTransaction();
 
@@ -94,7 +93,7 @@ const updateQA = async (req, res) => {
     const embedding = await createEmbedding(req.body);
     if (!embedding || !Array.isArray(embedding) || embedding.length === 0)
       return res.status(400).json({ msg: "Error embedding your text" });
-    await saveQAEmbedding(req.params.id, embedding, req.user.businessId);
+    await saveEmbedding(QA, req.params.id, embedding, req.user.businessId);
 
     // Find and update Q&A
     const qa = await QA.findOneAndUpdate(

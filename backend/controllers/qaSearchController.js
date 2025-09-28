@@ -1,6 +1,5 @@
 const QA = require("../models/qaModel");
-const saveQAEmbedding = require("../utils/saveQAEmbedding");
-const { createEmbedding } = require("../utils/embeddings");
+const { createEmbedding } = require("../utils/embedUtils");
 const mongoose = require("mongoose");
 const OpenAI = require("openai");
 

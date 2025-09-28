@@ -11,16 +11,17 @@ const s3 = new S3Client({
 });
 
 async function uploadFileToB2(file) {
+  file.key = `${Date.now()}-${file.originalname}`
   const command = new PutObjectCommand({
     Bucket: process.env.B2_BUCKET,
-    Key: `${Date.now()}-${file.originalname}`,
+    Key: file.key,
     Body: fs.createReadStream(file.path),
     ContentType: file.mimetype,
   });
 
   await s3.send(command);
 
-  return `https://s3.eu-central-003.backblazeb2.com/${process.env.B2_BUCKET}/${file.originalname}`;
+  return `https://${process.env.B2_BUCKET}.s3.eu-central-003.backblazeb2.com/${file.key}`;
 }
 
 async function deleteFileFromB2(fileUrl) {

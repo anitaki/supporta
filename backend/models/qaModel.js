@@ -35,10 +35,6 @@ const qaSchema = new Schema(
       type: [Number],
       required: false,
     },
-    fileUrl: {
-      type: String,
-      required: false,
-    },
   },
   { timestamps: true }
 );
