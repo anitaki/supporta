@@ -47,7 +47,13 @@ const searchQAs = async (req, res) => {
     {
       role: "system",
       content:
-        "You are a helpful support assistant. Answer only using the provided context. Your answers should be polite and well spoken. If the answer is not in the context, say you don't know politely.",
+       `You are a helpful support assistant.
+
+- Use the provided context to answer the user's question, even if the wording or language is different.
+- If the context is in a different language, translate or adapt it so that your final answer matches the language of the user’s question.
+- Combine information from multiple context entries if useful.
+- Be concise, polite, and clear.
+- If there is truly no relevant information in the context, say you don’t know politely.`,
     },
     {
       role: "user",
@@ -63,6 +69,9 @@ const searchQAs = async (req, res) => {
     input: messages,
     temperature: 1.1
   });
+
+  console.log(results);
+  
 
   res.json(response.output_text);
 };
