@@ -25,6 +25,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 import { CustomSnackbar } from '../../../ui-component/extended/Snackbar';
 import { validateRegisterForm } from '../../../utils/authValidation';
 import { strengthIndicator, strengthColor } from '../../../utils/password-strength';
+import { useAuth } from '../../../contexts/AuthContext';
 
 // assets
 import Visibility from '@mui/icons-material/Visibility';
@@ -35,7 +36,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 export default function AuthRegister() {
   const theme = useTheme();
-  // const { login } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -84,11 +85,15 @@ export default function AuthRegister() {
 
     try {
       const res = await axios.post(`${API_URL}/auth/register`, formData, { withCredentials: true });
-      console.log('🚀 ~ handleSubmit ~ res:', res);
       if (!res) throw new Error('Registration failed');
-      setSnackbar({ open: true, severity: 'success', message: 'Registration successful. Please login.' });
 
-      setTimeout(() => navigate('/'), 2000); //add login url
+      setSnackbar({ open: true, severity: 'success', message: 'Registration successful.' });
+
+      // Attempt login
+      const success = await login(formData.email, formData.password);
+      setErrors({});
+      if (success) setTimeout(() => navigate('/dashboard'), 1500);
+      else setTimeout(() => navigate('/login'), 1500);
     } catch (err) {
       const fieldErrors = {};
       if (err?.response?.data?.errors) {

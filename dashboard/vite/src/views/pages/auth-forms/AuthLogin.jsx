@@ -65,7 +65,7 @@ export default function AuthLogin() {
     // Attempt login
     const success = await login(input, password);
     setErrors({});
-    if (success) setTimeout(() => navigate('/'), 2000);
+    if (success) setTimeout(() => navigate('/dashboard'), 1500);
     else {
       setSnackbarMessage('Invalid credentials');
       setSnackbarOpen(true);
