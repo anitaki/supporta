@@ -36,7 +36,7 @@ const getBusiness = async (req, res) => {
   }
 };
 
-const updateBusiness = async (req, res) => {
+const updateBusiness = async (req, res) => { // add business validation
   try {
     const business = await Business.findByIdAndUpdate(
    { _id: req.user.businessId },

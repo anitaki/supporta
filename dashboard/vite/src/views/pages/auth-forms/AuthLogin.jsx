@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -7,6 +8,7 @@ import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
 import FormControl from '@mui/material/FormControl';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import FormHelperText from '@mui/material/FormHelperText';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -17,6 +19,9 @@ import Box from '@mui/material/Box';
 
 // project imports
 import AnimateButton from 'ui-component/extended/AnimateButton';
+import { useAuth } from '../../../contexts/AuthContext';
+import { validateLoginForm } from '../../../utils/authValidation';
+import { CustomSnackbar } from '../../../ui-component/extended/Snackbar';
 
 // assets
 import Visibility from '@mui/icons-material/Visibility';
@@ -26,10 +31,17 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 export default function AuthLogin() {
   const theme = useTheme();
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const [checked, setChecked] = useState(true);
-
   const [showPassword, setShowPassword] = useState(false);
+  const [password, setPassword] = useState('');
+  const [input, setInput] = useState('');
+  const [errors, setErrors] = useState([]);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
   };
@@ -38,20 +50,43 @@ export default function AuthLogin() {
     event.preventDefault();
   };
 
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setSnackbarOpen(false);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Validate form
+    const newErrors = validateLoginForm(input, password);
+    if (newErrors) return setErrors(newErrors);
+
+    // Attempt login
+    const success = await login(input, password);
+    setErrors({});
+    if (success) setTimeout(() => navigate('/'), 2000);
+    else {
+      setSnackbarMessage('Invalid credentials');
+      setSnackbarOpen(true);
+    }
+  };
+
   return (
-    <>
-      <FormControl fullWidth sx={{ ...theme.typography.customInput }}>
-        <InputLabel htmlFor="outlined-adornment-email-login">Email Address / Username</InputLabel>
-        <OutlinedInput id="outlined-adornment-email-login" type="email" value="info@codedthemes.com" name="email" />
+    <Box component="form" onSubmit={handleSubmit}>
+      <FormControl fullWidth sx={{ ...theme.typography.customInput }} error={!!errors.input}>
+        <InputLabel htmlFor="outlined-adornment-input-login">Email Address / Username</InputLabel>
+        <OutlinedInput id="outlined-adornment-input-login" type="text" value={input} onChange={(e) => setInput(e.target.value)} />
+        {errors.input && <FormHelperText>{errors.input}</FormHelperText>}
       </FormControl>
 
-      <FormControl fullWidth sx={{ ...theme.typography.customInput }}>
+      <FormControl fullWidth sx={{ ...theme.typography.customInput }} error={!!errors.password}>
         <InputLabel htmlFor="outlined-adornment-password-login">Password</InputLabel>
         <OutlinedInput
           id="outlined-adornment-password-login"
           type={showPassword ? 'text' : 'password'}
-          value="123456"
-          name="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           endAdornment={
             <InputAdornment position="end">
               <IconButton
@@ -67,6 +102,7 @@ export default function AuthLogin() {
           }
           label="Password"
         />
+        {errors.password && <FormHelperText>{errors.password}</FormHelperText>}
       </FormControl>
 
       <Grid container sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
@@ -89,6 +125,14 @@ export default function AuthLogin() {
           </Button>
         </AnimateButton>
       </Box>
-    </>
+      <CustomSnackbar
+        open={snackbarOpen}
+        autoHideDuration={5000}
+        message={snackbarMessage}
+        severity="error"
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      />
+    </Box>
   );
 }

@@ -1,13 +1,13 @@
 import value from 'assets/scss/_themes-vars.module.scss';
 
 // has number
-const hasNumber = (number) => new RegExp(/[0-9]/).test(number);
+export const hasNumber = (number) => new RegExp(/[0-9]/).test(number);
 
 // has mix of small and capitals
-const hasMixed = (number) => new RegExp(/[a-z]/).test(number) && new RegExp(/[A-Z]/).test(number);
+export const hasMixed = (number) => new RegExp(/[a-z]/).test(number) && new RegExp(/[A-Z]/).test(number);
 
 // has special chars
-const hasSpecial = (number) => new RegExp(/[!#@$%^&*)(+=._-]/).test(number);
+export const hasSpecial = (number) => new RegExp(/[!#@$%^&*)(+=._-]/).test(number);
 
 // set color based on password strength
 export const strengthColor = (count) => {

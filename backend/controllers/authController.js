@@ -15,7 +15,7 @@ const { request } = require("express");
 const registerUser = async (req, res) => {
   // Validate request
   const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.json(errors);
+  if (!errors.isEmpty()) return res.status(400).json(errors);
 
   // Start mongoose session
   const session = await mongoose.startSession();
@@ -28,7 +28,12 @@ const registerUser = async (req, res) => {
 
     const existingUser = await User.findOne({ $or: [{ username }, { email }] });
     if (existingUser) {
-      return res.status(400).json({ msg: "Username or email already exist" });
+      if (existingUser.username === username) {
+        return res.status(400).json({ msg: "Username already exists" });
+      }
+      if (existingUser.email === email) {
+        return res.status(400).json({ msg: "Email already exists" });
+      }
     }
 
     // Create new user
@@ -47,7 +52,7 @@ const registerUser = async (req, res) => {
       name: businessName,
       owner: newUser._id,
     });
-    const existingBusiness = await Business.findOne({ name: newBusiness.name });
+    const existingBusiness = await Business.findOne({  name: { $regex: `^${businessName}$`, $options: "i" } });
     if (existingBusiness)
       return res.status(400).json({ msg: "Business name already exists" });
 
@@ -98,7 +103,7 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   const { username, email, password } = req.body;
 
-  const user = await User.findOne({ $or: [{ username }, { email }]});
+  const user = await User.findOne({ $or: [{ username }, { email }] });
   if (!user) return res.status(400).json({ msg: "User not found" });
 
   const isMatch = await user.comparePassword(password);
@@ -120,7 +125,15 @@ const loginUser = async (req, res) => {
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 
-  res.json({ accessToken: accessToken, refreshToken: refreshToken });
+  const {
+    password: _,
+    createdAt,
+    updatedAt,
+    __v,
+    ...userObj
+  } = user.toObject();
+
+  res.json({ accessToken: accessToken, refreshToken: refreshToken, userObj });
 };
 
 const refreshUserToken = async (req, res) => {

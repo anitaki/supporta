@@ -1,4 +1,5 @@
 import { RouterProvider } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
 
 // routing
 import router from 'routes';
@@ -16,9 +17,9 @@ export default function App() {
   return (
     <ThemeCustomization>
       <NavigationScroll>
-        <>
+        <AuthProvider>
           <RouterProvider router={router} />
-        </>
+        </AuthProvider>
       </NavigationScroll>
     </ThemeCustomization>
   );

@@ -3,6 +3,7 @@ const app = express()
 require("dotenv").config();
 const db = require("./config/db")
 const cookieParser = require("cookie-parser");
+const cors = require("cors")
 
 // Routers
 const usersRouter = require("./routes/userRouter");
@@ -11,6 +12,14 @@ const businessRouter = require("./routes/businessRouter");
 const qaRouter = require("./routes/qaRouter");
 const uploadsRouter = require("./routes/uploadsRouter")
 
+// Middleware
+const allowedOrigins = ["http://localhost:3000", "http://192.168.1.25:3000"];
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(cookieParser());
 
