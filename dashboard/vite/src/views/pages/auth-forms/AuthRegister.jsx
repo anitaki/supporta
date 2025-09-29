@@ -24,6 +24,7 @@ import AnimateButton from 'ui-component/extended/AnimateButton';
 const API_URL = import.meta.env.VITE_API_URL;
 import { CustomSnackbar } from '../../../ui-component/extended/Snackbar';
 import { validateRegisterForm } from '../../../utils/authValidation';
+import { strengthIndicator, strengthColor } from '../../../utils/password-strength';
 
 // assets
 import Visibility from '@mui/icons-material/Visibility';
@@ -91,10 +92,12 @@ export default function AuthRegister() {
     } catch (err) {
       const fieldErrors = {};
       if (err?.response?.data?.errors) {
-        err.response.data.errors.forEach((err) => {(fieldErrors[err.path] = err.msg)});
+        err.response.data.errors.forEach((err) => {
+          fieldErrors[err.path] = err.msg;
+        });
       }
       setErrors(fieldErrors);
-      console.log(fieldErrors)
+      console.log(fieldErrors);
       if (err.response && err.response.data?.msg) {
         setSnackbar({ open: true, severity: 'error', message: err.response.data.msg });
       } else {
@@ -196,7 +199,33 @@ export default function AuthRegister() {
             </InputAdornment>
           }
         />
-        {errors.password && <FormHelperText>{errors.password}</FormHelperText>}
+        {errors.password && (
+          <FormHelperText>
+            {/* Strength indicator */}
+            {formData.password && (
+              <FormHelperText sx={{ mb: errors.password ? 0 : 1 }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: strengthColor(strengthIndicator(formData.password)).color,
+                    fontWeight: 'bold'
+                  }}
+                >
+                  Strength: {strengthColor(strengthIndicator(formData.password)).label}
+                </Typography>
+              </FormHelperText>
+            )}
+
+            {/* Validation error */}
+            {errors.password && (
+              <FormHelperText>
+                <Typography variant="caption" sx={{ color: theme.palette.error.main }}>
+                  {errors.password}
+                </Typography>
+              </FormHelperText>
+            )}
+          </FormHelperText>
+        )}
       </FormControl>
 
       <Grid container sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
