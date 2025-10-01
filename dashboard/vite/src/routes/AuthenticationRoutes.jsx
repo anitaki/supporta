@@ -11,7 +11,7 @@ const RegisterPage = Loadable(lazy(() => import('views/pages/authentication/Regi
 // ==============================|| AUTHENTICATION ROUTING ||============================== //
 
 const AuthenticationRoutes = {
-  path: '/',
+  path: '/auth',
   element: <MinimalLayout />,
   children: [
     {

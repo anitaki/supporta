@@ -5,7 +5,8 @@ const API_URL = import.meta.env.VITE_API_URL;
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState({});
+  const [user, setUser] = useState(null);
+  const [businessName, setBusinessName] = useState(null)
   const [token, setToken] = useState(localStorage.getItem('token') || null);
 
   useEffect(() => {
@@ -14,7 +15,6 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (input, password) => {
     const body = input.includes('@') ? { email: input, password } : { username: input, password };
-    console.log('🚀 ~ login ~ body:', body);
 
     try {
       const res = await axios.post(`${API_URL}/auth/login`, body, { withCredentials: true });
@@ -23,6 +23,7 @@ export const AuthProvider = ({ children }) => {
       setToken(res.data.accessToken);
       localStorage.setItem('token', res.data.accessToken);
       setUser(res.data.userObj);
+      setBusinessName(res.data?.userObj?.businessId?.name)
 
       return true;
     } catch (err) {
@@ -34,10 +35,11 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     setToken(null);
+    setBusinessName(null)
     localStorage.removeItem('token');
   };
 
-  return <AuthContext.Provider value={{ user, token, login, logout }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, token, businessName, login, logout }}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => useContext(AuthContext);

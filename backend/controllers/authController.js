@@ -81,6 +81,7 @@ const registerUser = async (req, res) => {
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     });
 
+    await newUser.populate("businessId"); 
     const userObj = newUser.toObject();
     delete userObj.password;
 
@@ -124,6 +125,8 @@ const loginUser = async (req, res) => {
     sameSite: "Strict",
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
+
+  await user.populate("businessId")
 
   const {
     password: _,
