@@ -7,14 +7,14 @@ const qaSchema = new Schema(
       type: String,
       required: true,
       trim: true,
-      minlength: 5,
+      minlength: 1,
       maxlength: 255,
     },
     answer: {
       type: String,
       required: true,
       trim: true,
-      minlength: 5,
+      minlength: 1,
       maxlength: 2000,
     },
     source: {

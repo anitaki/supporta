@@ -1,4 +1,3 @@
-// src/pages/qa/QAManagement.jsx
 import { useEffect, useState } from 'react';
 import {
   Box,
@@ -17,6 +16,7 @@ import { DataGrid } from '@mui/x-data-grid';
 import { Add, Upload, Edit, Delete } from '@mui/icons-material';
 import { useAuth } from '../../../contexts/AuthContext';
 import { formatDate } from '../../../utils/formatDate';
+import { CustomSnackbar } from '../../../ui-component/extended/Snackbar';
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function QAManagement() {
@@ -24,13 +24,20 @@ export default function QAManagement() {
   const [open, setOpen] = useState(false);
   const [editingQA, setEditingQA] = useState(null);
   const [form, setForm] = useState({ question: '', answer: '' });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: ''
+  });
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [selectedQA, setSelectedQA] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   const { api } = useAuth();
 
-  // Fetch QAs
   const fetchQAs = async () => {
     try {
-      const res = await api.get(`${API_URL}/qa`);
+      const res = await api.get(`/qa`);
       setQAs(res.data);
     } catch (err) {
       console.error('Error fetching QAs:', err);
@@ -41,35 +48,118 @@ export default function QAManagement() {
     fetchQAs();
   }, []);
 
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   // Add/Edit QA
   const handleSave = async () => {
-    if (editingQA) {
-      await api.put(`${API_URL}/qa/${editingQA._id}`, form);
-    } else {
-      await api.post(`${API_URL}/qa`, form);
+    try {
+      if (editingQA) {
+        await api.put(`/qa/${editingQA._id}`, form);
+      } else {
+        await api.post(`${API_URL}/qa`, form);
+      }
+      setOpen(false);
+      setEditingQA(null);
+      fetchQAs();
+      setSnackbar({ open: true, severity: 'success', message: 'Your QA was saved successfully' });
+    } catch (err) {
+      const { msg } = err.response?.data?.msg[0] || {};
+
+      if (msg) {
+        setSnackbar({
+          open: true,
+          severity: 'error',
+          message: msg
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          severity: 'error',
+          message: 'Something went wrong. Please try again.'
+        });
+        setOpen(false);
+        setEditingQA(null);
+      }
+      console.error('Error saving QA:', err);
     }
-    setOpen(false);
-    setEditingQA(null);
-    fetchQAs();
   };
 
   // Delete QA
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this QA?')) return;
-    await api.delete(`${API_URL}/qa/${id}`);
-    fetchQAs();
+  const confirmDelete = (qa) => {
+    setSelectedQA(qa);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleDelete = async () => {
+    try {
+      await api.delete(`qa/${selectedQA._id}`);
+      setOpenDeleteDialog(false);
+      setSelectedQA(null);
+      fetchQAs();
+      setSnackbar({ open: true, severity: 'success', message: 'Your QA was deleted successfully' });
+    } catch (err) {
+      console.error('Error deleting QA:', err);
+      setSnackbar({ open: true, severity: 'error', message: 'Something went wrong. Please try again.' });
+    }
   };
 
   // CSV Upload
   const handleCSVUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const formData = new FormData();
-    formData.append('file', file);
-    await api.post('/qa/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-    fetchQAs();
+    try {
+      const file = e.target.files[0];
+      if (!file) return;
+      setUploading(true);
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await api.post('/upload/csv', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      fetchQAs();
+      const { validRows, totalRows, msg } = res.data;
+      const invalidRows = totalRows - validRows;
+      if (validRows > 0 && invalidRows) {
+        // Partial success
+        setSnackbar({
+          open: true,
+          severity: 'warning',
+          message: `Processed ${validRows} out of ${totalRows} rows successfully. ${invalidRows} rows were skipped.`
+        });
+      } else if (validRows > 0) {
+        // Full success
+        setSnackbar({
+          open: true,
+          severity: 'success',
+          message: `Your CSV was processed successfully. Added ${validRows} out of ${totalRows} rows.`
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          severity: 'error',
+          message: msg || 'No valid rows found in CSV. Please check your file and try again.'
+        });
+      }
+    } catch (err) {
+      const { msg } = err.response?.data || {};
+      console.error('Error uploading your CSV:', err);
+      if (msg) {
+        setSnackbar({
+          open: true,
+          severity: 'error',
+          message: msg
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          severity: 'error',
+          message: 'Something went wrong. Please try again.'
+        });
+      }
+    } finally {
+      setUploading(false);
+    }
   };
 
   const columns = [
@@ -95,7 +185,7 @@ export default function QAManagement() {
           >
             <Edit fontSize="small" />
           </IconButton>
-          <IconButton size="small" onClick={() => handleDelete(params.row._id)}>
+          <IconButton size="small" onClick={() => confirmDelete(params.row)}>
             <Delete fontSize="small" />
           </IconButton>
         </>
@@ -163,6 +253,30 @@ export default function QAManagement() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>
+          <Typography>
+            "Are you sure you want to delete <strong>{selectedQA?.question}" </strong>?
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 4 }}>
+          <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
+          <Button color="error" variant="contained" onClick={handleDelete}>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <CustomSnackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      />
     </Box>
   );
 }

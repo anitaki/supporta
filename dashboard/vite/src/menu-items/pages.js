@@ -17,7 +17,7 @@ const pages = {
   children: [
      {
           id: 'qa-management',
-          title: 'QA Management',
+          title: 'Q&A Content',
           type: 'item',
           url: '/qa',
           icon: icons.IconLibrary,
