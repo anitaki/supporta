@@ -10,7 +10,8 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  IconButton
+  IconButton,
+  CircularProgress 
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { Add, Upload, Edit, Delete } from '@mui/icons-material';
@@ -212,7 +213,7 @@ export default function QAManagement() {
           >
             Add New
           </Button>
-          <Button variant="outlined" startIcon={<Upload />} component="label">
+          <Button variant="outlined" startIcon={uploading ? <CircularProgress size={20}/>  : <Upload />} component="label">
             Upload CSV
             <input type="file" hidden accept=".csv" onChange={handleCSVUpload} />
           </Button>
