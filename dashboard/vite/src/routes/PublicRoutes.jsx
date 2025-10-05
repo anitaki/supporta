@@ -4,7 +4,7 @@ import { lazy } from 'react';
 import Loadable from 'ui-component/Loadable';
 import MinimalLayout from 'layout/MinimalLayout';
 
-const HomePage = Loadable(lazy(() => import('views/pages/HomePage')));
+const HomePage = Loadable(lazy(() => import('views/public/HomePage')));
 
 // ==============================|| PUBLIC ROUTING ||============================== //
 

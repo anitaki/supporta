@@ -126,7 +126,7 @@ const loginUser = async (req, res) => {
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 
-  await user.populate("businessId")
+  await user.populate({path: "businessId",  select: "-owner -__v" })
 
   const {
     password: _,
