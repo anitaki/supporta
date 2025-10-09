@@ -10,6 +10,7 @@ const usersRouter = require("./routes/userRouter");
 const authRouter = require("./routes/authRouter");
 const businessRouter = require("./routes/businessRouter");
 const qaRouter = require("./routes/qaRouter");
+const fileRouter = require("./routes/fileRouter");
 const uploadsRouter = require("./routes/uploadsRouter")
 
 // Middleware
@@ -28,6 +29,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/business", businessRouter);
 app.use("/api/qa", qaRouter);
+app.use("/api/file", fileRouter);
 app.use("/api/upload", uploadsRouter)
 
 

@@ -1,9 +1,9 @@
 // assets
-import { IconBrandChrome, IconKey, IconLibrary } from '@tabler/icons-react';
+import { IconBrandChrome, IconKey, IconLibrary, IconFileNeutral } from '@tabler/icons-react';
 
 // constant
 const icons = {
-  IconBrandChrome, IconKey, IconLibrary
+  IconBrandChrome, IconKey, IconLibrary, IconFileNeutral
 };
 
 // ==============================|| EXTRA PAGES MENU ITEMS ||============================== //
@@ -21,6 +21,14 @@ const pages = {
           type: 'item',
           url: '/qa',
           icon: icons.IconLibrary,
+          breadcrumbs: false
+        },
+          {
+          id: 'file-management',
+          title: 'File Content',
+          type: 'item',
+          url: '/file',
+          icon: icons.IconFileNeutral,
           breadcrumbs: false
         },
   ]
