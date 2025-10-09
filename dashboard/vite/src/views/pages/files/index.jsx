@@ -169,29 +169,34 @@ export default function FileManagement() {
     { field: 'title', headerName: 'Title', flex: 1 },
     { field: 'description', headerName: 'Description', flex: 1 },
     { field: 'uploadedAt', headerName: 'Uploaded At', width: 150, valueFormatter: (params) => formatDate(params) },
-    {
-      field: 'type',
-      headerName: 'URL',
-      width: 150,
-      renderCell: (params) => 
-        params.row.type === 'pdf' ? (
-          <IconButton size="small" onClick={() => window.open(params.row.url, '_blank')} title="Open file">
-            <PictureAsPdfRoundedIcon fontSize="small" />
-          </IconButton>
-        ) : (
-          <IconButton size="small" onClick={() => window.open(params.row.url, '_blank')} title="Open file">
-            <ImageIcon fontSize="small" />
-          </IconButton>
-        )
-    },
+    // {
+    //   field: 'type',
+    //   headerName: 'URL',
+    //   width: 80,
+    //   renderCell: (params) =>
+    //     params.row.type === 'pdf' ? (
+    //       <IconButton size="small" onClick={() => window.open(params.row.url, '_blank')} title="Open file">
+    //         <PictureAsPdfRoundedIcon fontSize="small" />
+    //       </IconButton>
+    //     ) : (
+    //       <IconButton size="small" onClick={() => window.open(params.row.url, '_blank')} title="Open file">
+    //         <ImageIcon fontSize="small" />
+    //       </IconButton>
+    //     )
+    // },
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 120,
+      width: 200,
       renderCell: (params) => (
         <>
+          <IconButton size="small" onClick={() => window.open(params.row.url, '_blank')} title="Open file">
+            {params.row.type === 'pdf' ? <PictureAsPdfRoundedIcon fontSize="small" /> : <ImageIcon fontSize="small" />}
+          </IconButton>
+
           <IconButton
             size="small"
+            title="Edit file"
             onClick={() => {
               setEditingQA(params.row);
               setForm({
@@ -203,7 +208,7 @@ export default function FileManagement() {
           >
             <Edit fontSize="small" />
           </IconButton>
-          <IconButton size="small" onClick={() => confirmDelete(params.row)}>
+          <IconButton size="small" onClick={() => confirmDelete(params.row)} title="Delete file">
             <Delete fontSize="small" />
           </IconButton>
         </>
