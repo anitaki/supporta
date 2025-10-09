@@ -198,7 +198,7 @@ export default function QAManagement() {
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h5" fontWeight={600}>
-          Q&A Management
+          Q&A Content Management
         </Typography>
         <Box>
           <Button

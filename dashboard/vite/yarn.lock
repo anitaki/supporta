@@ -2265,9 +2265,9 @@ minimist@^1.2.0, minimist@^1.2.6:
   integrity sha512-qOOzS1cBTWYF4BH8fVePDBOO9iptMnGUEZwNc/cMWnTV2nVLZ7VoNWEPHkYczZA0pdoA7dl6e7FL659nX9S2aw==
 
 motion-dom@^12.10.1:
-  version "12.23.12"
-  resolved "https://registry.npmjs.org/motion-dom/-/motion-dom-12.23.12.tgz"
-  integrity sha512-RcR4fvMCTESQBD/uKQe49D5RUeDOokkGRmz4ceaJKDBgHYtZtntC/s2vLvY38gqGaytinij/yi3hMcWVcEF5Kw==
+  version "12.23.21"
+  resolved "https://registry.npmjs.org/motion-dom/-/motion-dom-12.23.21.tgz"
+  integrity sha512-5xDXx/AbhrfgsQmSE7YESMn4Dpo6x5/DTZ4Iyy4xqDvVHWvFVoV+V2Ri2S/ksx+D40wrZ7gPYiMWshkdoqNgNQ==
   dependencies:
     motion-utils "^12.23.6"
 
