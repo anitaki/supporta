@@ -25,15 +25,15 @@ const API_URL = import.meta.env.VITE_API_URL;
 export default function FileManagement() {
   const [files, setFiles] = useState([]);
   const [open, setOpen] = useState(false);
-  const [editingQA, setEditingQA] = useState(null);
-  const [form, setForm] = useState({ question: '', answer: '' });
+  const [editingFile, setEditingFile] = useState(null);
+  const [form, setForm] = useState({ title: '', description: '', file: null });
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: ''
   });
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const [selectedQA, setSelectedQA] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
 
   const { api } = useAuth();
@@ -56,112 +56,64 @@ export default function FileManagement() {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  // Add/Edit QA
+  // Add/Edit File
   const handleSave = async () => {
     try {
-      if (editingQA) {
-        await api.put(`/file/${editingQA._id}`, form);
-      } else {
-        await api.post(`${API_URL}/file`, form);
-      }
-      setOpen(false);
-      setEditingQA(null);
-      fetchFiles();
-      setSnackbar({ open: true, severity: 'success', message: 'Your QA was saved successfully' });
-    } catch (err) {
-      const { msg } = err.response?.data?.msg[0] || {};
+      setUploading(true);
 
-      if (msg) {
-        setSnackbar({
-          open: true,
-          severity: 'error',
-          message: msg
+      const formData = new FormData();
+      formData.append('title', form.title);
+      formData.append('description', form.description);
+      if (form.file) formData.append('file', form.file);
+
+      // Determine upload route based on file type
+      let uploadRoute = '/upload';
+      if (form.file) {
+        const isPDF = form.file.type === 'application/pdf';
+        uploadRoute = isPDF ? '/upload/pdf' : '/upload/image';
+      }
+
+      if (editingFile) {
+        await api.patch(`/upload/${editingFile._id}`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
         });
       } else {
-        setSnackbar({
-          open: true,
-          severity: 'error',
-          message: 'Something went wrong. Please try again.'
+        await api.post(uploadRoute, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
         });
-        setOpen(false);
-        setEditingQA(null);
       }
-      console.error('Error saving QA:', err);
+
+      setOpen(false);
+      setEditingFile(null);
+      setForm({ title: '', description: '', file: null });
+      fetchFiles();
+
+      setSnackbar({ open: true, severity: 'success', message: 'Your file was saved successfully' });
+    } catch (err) {
+      console.error('Error saving file:', err);
+      const message = err.response?.data?.msg?.[0]?.msg || 'Something went wrong. Please try again.';
+      setSnackbar({ open: true, severity: 'error', message });
+    } finally {
+      setUploading(false);
     }
   };
 
   // Delete QA
-  const confirmDelete = (qa) => {
-    setSelectedQA(qa);
+  const confirmDelete = (file) => {
+    setSelectedFile(file);
     setOpenDeleteDialog(true);
   };
 
   const handleDelete = async () => {
     try {
-      await api.delete(`qa/${selectedQA._id}`);
+      await api.delete(`file/${selectedFile._id}`);
       setOpenDeleteDialog(false);
-      setSelectedQA(null);
-      fetchQAs();
-      setSnackbar({ open: true, severity: 'success', message: 'Your QA was deleted successfully' });
+      setSelectedFile(null);
+      fetchFiles();
+      setSnackbar({ open: true, severity: 'success', message: 'Your file was deleted successfully' });
     } catch (err) {
-      console.error('Error deleting QA:', err);
+      console.error('Error deleting file:', err);
       setSnackbar({ open: true, severity: 'error', message: 'Something went wrong. Please try again.' });
-    }
-  };
-
-  // CSV Upload
-  const handleCSVUpload = async (e) => {
-    try {
-      const file = e.target.files[0];
-      if (!file) return;
-      setUploading(true);
-      const formData = new FormData();
-      formData.append('file', file);
-      const res = await api.post('/upload/csv', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      fetchQAs();
-      const { validRows, totalRows, msg } = res.data;
-      const invalidRows = totalRows - validRows;
-      if (validRows > 0 && invalidRows) {
-        // Partial success
-        setSnackbar({
-          open: true,
-          severity: 'warning',
-          message: `Processed ${validRows} out of ${totalRows} rows successfully. ${invalidRows} rows were skipped.`
-        });
-      } else if (validRows > 0) {
-        // Full success
-        setSnackbar({
-          open: true,
-          severity: 'success',
-          message: `Your CSV was processed successfully. Added ${validRows} out of ${totalRows} rows.`
-        });
-      } else {
-        setSnackbar({
-          open: true,
-          severity: 'error',
-          message: msg || 'No valid rows found in CSV. Please check your file and try again.'
-        });
-      }
-    } catch (err) {
-      const { msg } = err.response?.data || {};
-      console.error('Error uploading your CSV:', err);
-      if (msg) {
-        setSnackbar({
-          open: true,
-          severity: 'error',
-          message: msg
-        });
-      } else {
-        setSnackbar({
-          open: true,
-          severity: 'error',
-          message: 'Something went wrong. Please try again.'
-        });
-      }
-    } finally {
-      setUploading(false);
     }
   };
 
@@ -189,7 +141,15 @@ export default function FileManagement() {
       headerName: 'Actions',
       width: 200,
       renderCell: (params) => (
-        <>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100%'
+          }}
+          gap={0.5}
+        >
           <IconButton size="small" onClick={() => window.open(params.row.url, '_blank')} title="Open file">
             {params.row.type === 'pdf' ? <PictureAsPdfRoundedIcon fontSize="small" /> : <ImageIcon fontSize="small" />}
           </IconButton>
@@ -198,10 +158,10 @@ export default function FileManagement() {
             size="small"
             title="Edit file"
             onClick={() => {
-              setEditingQA(params.row);
+              setEditingFile(params.row);
               setForm({
-                question: params.row.question,
-                answer: params.row.answer
+                title: params.row.title,
+                description: params.row.description
               });
               setOpen(true);
             }}
@@ -211,7 +171,7 @@ export default function FileManagement() {
           <IconButton size="small" onClick={() => confirmDelete(params.row)} title="Delete file">
             <Delete fontSize="small" />
           </IconButton>
-        </>
+        </Box>
       )
     }
   ];
@@ -227,17 +187,13 @@ export default function FileManagement() {
             variant="contained"
             startIcon={<Add />}
             onClick={() => {
-              setEditingQA(null);
-              setForm({ question: '', answer: '' });
+              setEditingFile(null);
+              setForm({ title: '', description: '' });
               setOpen(true);
             }}
             sx={{ mr: 1 }}
           >
             Add New
-          </Button>
-          <Button variant="outlined" startIcon={uploading ? <CircularProgress size={20} /> : <Upload />} component="label">
-            Upload CSV
-            <input type="file" hidden accept=".csv" onChange={handleCSVUpload} />
           </Button>
         </Box>
       </Box>
@@ -250,29 +206,36 @@ export default function FileManagement() {
 
       {/* Add/Edit Dialog */}
       <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{editingQA ? 'Edit QA' : 'Add QA'}</DialogTitle>
+        <DialogTitle>{editingFile ? 'Edit File' : 'Add File'}</DialogTitle>
         <DialogContent>
           <TextField
             fullWidth
-            label="Question"
+            label="Title"
             margin="normal"
-            value={form.question}
-            onChange={(e) => setForm({ ...form, question: e.target.value })}
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
           />
           <TextField
             fullWidth
-            label="Answer"
+            label="Description"
             margin="normal"
             multiline
             rows={3}
-            value={form.answer}
-            onChange={(e) => setForm({ ...form, answer: e.target.value })}
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
           />
+          <Box mt={1} sx={{ display: 'flex' }} gap={2}>
+            <Button variant="outlined" component="label" sx={{ borderRadius: 1 }}>
+              Upload File
+              <input type="file" hidden accept=".pdf,image/*" onChange={(e) => setForm({ ...form, file: e.target.files[0] })} />
+            </Button>
+            {form.file ? <Typography mt={1}>{form.file.name}</Typography> : <Typography mt={1}>No file selected</Typography>}
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleSave}>
-            Save
+          <Button variant="contained" onClick={handleSave} disabled={uploading}>
+            {uploading ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'Save'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -282,7 +245,7 @@ export default function FileManagement() {
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
           <Typography>
-            "Are you sure you want to delete <strong>{selectedQA?.question}" </strong>?
+            "Are you sure you want to delete <strong>{selectedFile?.originalName} </strong>?
           </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 4 }}>

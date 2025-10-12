@@ -218,4 +218,86 @@ const uploadPdf = async (req, res) => {
   }
 };
 
-module.exports = { createQaFromCsv, uploadImage, uploadPdf };
+const updateFile = async (req, res) => {
+  const { id } = req.params;
+  const session = await mongoose.startSession();
+
+  try {
+    const existingFile = await File.findById(id);
+    console.log("🚀 ~ updateFile ~ existingFile:", existingFile)
+    if (!existingFile)
+      return res.status(404).json({ msg: "File not found" });
+
+    session.startTransaction();
+
+    const updates = {
+      title: req.body.title,
+      description: req.body.description,
+    };
+    console.log("🚀 ~ updateFile ~ updates:", updates)
+
+    // If a new file is uploaded
+    if (req.file) {
+      // Delete old file from B2
+      if (existingFile.url) await deleteFileFromB2(existingFile.url);
+
+      // Upload new file
+      const newFileUrl = await uploadFileToB2(req.file);
+      updates.url = newFileUrl;
+      updates.originalName = req.file.originalname;
+
+      const isPdf = req.file.mimetype === "application/pdf";
+      updates.type = isPdf ? "pdf" : "image";
+
+      // Handle embeddings
+      if (isPdf) {
+        // Delete old chunks
+        await DocumentChunk.deleteMany({ fileId: existingFile._id });
+
+        const filePath = path.resolve(req.file.path);
+        const pdfText = await extractTextFromPdf(filePath);
+        const chunks = chunkText(pdfText, 2000);
+        const chunkIds = [];
+
+        for (let chunkText of chunks) {
+          const embedding = await createEmbedding(chunkText);
+          const documentChunk = new DocumentChunk({
+            fileId: existingFile._id,
+            businessId: req.user.businessId,
+            text: chunkText,
+            embedding,
+          });
+          await documentChunk.save({ session });
+          chunkIds.push(documentChunk._id);
+        }
+
+        updates.chunkIds = chunkIds;
+      } else {
+        // Recreate embedding for image
+        const embedding = await createEmbedding(req.file);
+        await saveEmbedding(File, existingFile._id, embedding, req.user.businessId, session);
+      }
+    }
+
+    // Apply updates
+    const updatedFile = await File.findByIdAndUpdate(id, updates, { new: true, session });
+    console.log("🚀 ~ updateFile ~ updatedFile:", updatedFile)
+
+    await session.commitTransaction();
+
+    res.status(200).json({
+      msg: "File updated successfully",
+      data: updatedFile,
+    });
+  } catch (err) {
+    await session.abortTransaction();
+    console.error("Error updating file:", err);
+    res.status(500).json({ msg: "Internal server error", error: err.message });
+  } finally {
+    session.endSession();
+    if (req.file) fs.unlinkSync(req.file.path);
+  }
+};
+
+
+module.exports = { createQaFromCsv, uploadImage, uploadPdf, updateFile };

@@ -11,7 +11,7 @@ import {
   DialogActions,
   TextField,
   IconButton,
-  CircularProgress 
+  CircularProgress
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { Add, Upload, Edit, Delete } from '@mui/icons-material';
@@ -33,6 +33,7 @@ export default function QAManagement() {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedQA, setSelectedQA] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(false)
 
   const { api } = useAuth();
 
@@ -57,11 +58,13 @@ export default function QAManagement() {
   // Add/Edit QA
   const handleSave = async () => {
     try {
+        setLoading(true);
       if (editingQA) {
         await api.put(`/qa/${editingQA._id}`, form);
       } else {
         await api.post(`${API_URL}/qa`, form);
       }
+      setLoading(true)
       setOpen(false);
       setEditingQA(null);
       fetchQAs();
@@ -82,9 +85,12 @@ export default function QAManagement() {
           message: 'Something went wrong. Please try again.'
         });
         setOpen(false);
+          setLoading(false)
         setEditingQA(null);
       }
       console.error('Error saving QA:', err);
+    } finally {
+        setLoading(false);
     }
   };
 
@@ -213,7 +219,7 @@ export default function QAManagement() {
           >
             Add New
           </Button>
-          <Button variant="outlined" startIcon={uploading ? <CircularProgress size={20}/>  : <Upload />} component="label">
+          <Button variant="outlined" startIcon={uploading ? <CircularProgress size={20} /> : <Upload />} component="label">
             Upload CSV
             <input type="file" hidden accept=".csv" onChange={handleCSVUpload} />
           </Button>
@@ -249,8 +255,8 @@ export default function QAManagement() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleSave}>
-            Save
+          <Button variant="contained" onClick={handleSave} disabled={loading}>
+            {loading ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'Save'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -260,7 +266,7 @@ export default function QAManagement() {
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>
           <Typography>
-            "Are you sure you want to delete <strong>{selectedQA?.question}" </strong>?
+            "Are you sure you want to delete <strong>{selectedQA?.question} </strong>?
           </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 4 }}>
