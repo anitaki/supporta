@@ -4,6 +4,7 @@ require("dotenv").config();
 const db = require("./config/db")
 const cookieParser = require("cookie-parser");
 const cors = require("cors")
+const path = require("path")
 
 // Routers
 const usersRouter = require("./routes/userRouter");
@@ -23,6 +24,23 @@ app.use(
 );
 app.use(express.json());
 app.use(cookieParser());
+
+// Public static files
+app.use(express.static(path.join(__dirname, "public")));
+
+app.get("/chat-widget", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "chat-widget.html"));
+});
+
+/*
+// Serve the chat widget build
+app.use("/chat-widget", express.static(path.resolve("../chat-widget/build")));
+
+// Fallback for SPA routing if needed
+app.get("/chat-widget/*", (req, res) => {
+  res.sendFile(path.resolve("../chat-widget/build/index.html"));
+});
+*/
 
 // API routes
 app.use("/api/auth", authRouter);

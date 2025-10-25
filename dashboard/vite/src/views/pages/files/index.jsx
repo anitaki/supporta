@@ -20,7 +20,7 @@ import { formatDate } from '../../../utils/formatDate';
 import { CustomSnackbar } from '../../../ui-component/extended/Snackbar';
 import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
 import ImageIcon from '@mui/icons-material/Image';
-const API_URL = import.meta.env.VITE_API_URL;
+// const API_URL = import.meta.env.VITE_API_URL;
 
 export default function FileManagement() {
   const [files, setFiles] = useState([]);
@@ -226,7 +226,7 @@ export default function FileManagement() {
           />
           <Box mt={1} sx={{ display: 'flex' }} gap={2}>
             <Button variant="outlined" component="label" sx={{ borderRadius: 1 }}>
-              Upload File
+              <Upload/> Upload File 
               <input type="file" hidden accept=".pdf,image/*" onChange={(e) => setForm({ ...form, file: e.target.files[0] })} />
             </Button>
             {form.file ? <Typography mt={1}>{form.file.name}</Typography> : <Typography mt={1}>No file selected</Typography>}
