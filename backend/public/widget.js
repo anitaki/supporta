@@ -1,8 +1,7 @@
 (function () {
   if (window.self !== window.top) return; // Prevents recursion of creating a chat widget inside another
-  const backendUrl = window.location.hostname === "localhost"
-  ? "http://localhost:8800"
-  : "https://supporta.onrender.com";
+  // const backendUrl = "http://localhost:8800"
+  const backendUrl = "https://supporta.onrender.com"
   const businessId = document.currentScript.getAttribute("data-business");
   const widgetToken = document.currentScript.getAttribute("data-widget-token")
   const logoUrl = document.currentScript.getAttribute("data-logo") || `${backendUrl}/logo.png`;
@@ -30,7 +29,7 @@
     transition: all 0.3s ease;
     overflow-y: auto;
   `;
-  iframe.sandbox = "allow-scripts allow-same-origin allow-popups clipboard-read; clipboard-write";
+  iframe.sandbox = "allow-scripts allow-same-origin allow-popups";
   document.body.appendChild(iframe);
 
   // Create chat button
