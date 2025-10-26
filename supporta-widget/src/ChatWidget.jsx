@@ -38,7 +38,12 @@ export default function ChatWidget() {
   const widgetToken =
     params.get("token") ||
     "54dd78c16a7dd2af0ea75a2033e2ed5adc12e1f4f35549f880f8d31fc1bd64a98c76000b9edc303a43011d1b76d279d9d62984e7848596003ceb66bdda0e39f0";
-  const url = "http://localhost:8800/api";
+  const backendUrl =
+    window.location.hostname === "localhost"
+      ? "http://localhost:8800"
+      : "https://supporta.onrender.com";
+
+  const url = `${backendUrl}/api`;
 
   const fetchMessages = async () => {
     try {
@@ -59,8 +64,8 @@ export default function ChatWidget() {
   }, []);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({behavior: "smooth"})
-  }, [messages])
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const handleSendMessage = async (input) => {
     if (!input.trim() || loading) return;
@@ -143,7 +148,7 @@ export default function ChatWidget() {
             sx={{
               display: "flex",
               flexDirection: {
-                xs: message.role==="user" ? "column-reverse" : "column",
+                xs: message.role === "user" ? "column-reverse" : "column",
                 sm: "row",
               },
               alignItems: "flex-start",
@@ -183,7 +188,7 @@ export default function ChatWidget() {
                 borderRadius: 2,
                 p: 1.5,
                 maxWidth: {
-                  xs: "100%", 
+                  xs: "100%",
                   sm: "75%",
                 },
                 wordBreak: "break-word",
@@ -199,10 +204,10 @@ export default function ChatWidget() {
                       alt={props.alt || ""}
                       sx={{
                         display: "block",
-                        mt: 1, 
-                        borderRadius: 2, 
-                        maxWidth: { xs: 240, sm: 350 }, 
-                        width: "100%", 
+                        mt: 1,
+                        borderRadius: 2,
+                        maxWidth: { xs: 240, sm: 350 },
+                        width: "100%",
                         height: "auto",
                       }}
                     />
@@ -253,11 +258,9 @@ export default function ChatWidget() {
             />
           </Box>
         )}
-              {/* Reference point for scrolling */}
-      <div ref={endRef} />
+        {/* Reference point for scrolling */}
+        <div ref={endRef} />
       </Box>
-
-
 
       {/* Input area */}
       <Box

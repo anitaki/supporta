@@ -1,12 +1,17 @@
 (function () {
   if (window.self !== window.top) return; // Prevents recursion of creating a chat widget inside another
+  const backendUrl = window.location.hostname === "localhost"
+  ? "http://localhost:8800"
+  : "https://supporta.onrender.com";
   const businessId = document.currentScript.getAttribute("data-business");
   const widgetToken = document.currentScript.getAttribute("data-widget-token")
-  const logoUrl = document.currentScript.getAttribute("data-logo") || "http://localhost:8800/logo.png";
+  const logoUrl = document.currentScript.getAttribute("data-logo") || `${backendUrl}/logo.png`;
+
 
   // Create chat iframe
   const iframe = document.createElement("iframe");
-  iframe.src = `http://localhost:8800/chat-widget?business=${businessId}&token=${widgetToken}`;;
+  iframe.src = `${backendUrl}/chat-widget?business=${businessId}&token=${widgetToken}`;
+  iframe.setAttribute("scrolling", "no");
   iframe.style.cssText = `
     position: fixed;
     bottom: 90px;
@@ -23,9 +28,9 @@
     opacity: 0;
     transform: translateY(20px);
     transition: all 0.3s ease;
-      overflow-y: hidden;
+    overflow-y: auto;
   `;
-  iframe.sandbox = "allow-scripts allow-same-origin allow-popups";
+  iframe.sandbox = "allow-scripts allow-same-origin allow-popups clipboard-read; clipboard-write";
   document.body.appendChild(iframe);
 
   // Create chat button
