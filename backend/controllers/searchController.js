@@ -1,17 +1,18 @@
 const QA = require("../models/qaModel");
 const File = require("../models/fileModel");
 const DocumentChunk = require("../models/documentChunkModel");
+const Message = require("../models/messageModel");
 const { createEmbedding } = require("../utils/embedUtils");
 const mongoose = require("mongoose");
 const OpenAI = require("openai");
 const moderateUserInput = require("../utils/openaiUtils");
 
 const searchQAs = async (req, res) => {
-  const { q } = req.query;
+  const { q, conversationId } = req.query;
   if (!q) return res.status(400).json({ msg: "Query is required" });
 
   const moderationWarning = await moderateUserInput(q);
-  console.log("🚀 ~ searchQAs ~ moderationWarning:", moderationWarning)
+  console.log("🚀 ~ searchQAs ~ moderationWarning:", moderationWarning);
   if (moderationWarning) {
     return res.status(400).json({ msg: moderationWarning });
   }
@@ -102,12 +103,38 @@ const searchQAs = async (req, res) => {
     },
   ]);
 
+  // Get previous chat conversation
+  const previousMessages = await Message.find({
+    businessId: req.businessId,
+    conversationId,
+  })
+    .sort({ timestamp: 1 })
+    .limit(10);
+
+  const chatHistoryObj = {
+    type: "chatHistory",
+    text: [
+      previousMessages.map((msg) =>
+        msg.role === "user"
+          ? `User: ${msg.content}`
+          : `Assistant: ${msg.content}`
+      )
+    ].join("\n"),
+  };
+  console.log("🚀 ~ searchQAs ~ chatHistory:", chatHistoryObj);
+
   // Get response from openAI
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   });
 
-  const combinedResults = [...qaResults, ...chunksWithFile, ...imageResults];
+  const combinedResults = [
+    ...qaResults,
+    ...chunksWithFile,
+    ...imageResults,
+    chatHistoryObj,
+  ];
+  console.log("🚀 ~ searchQAs ~ combinedResults:", combinedResults);
 
   const context = combinedResults
     .map((res) => {
@@ -116,42 +143,50 @@ const searchQAs = async (req, res) => {
         return `Document: ${res.file?.title}\nContent: ${res.text}`;
       if (res.type === "image")
         return `Title: ${res.title}\nDescription: ${res?.description}\nURL: ${res.url}`;
+      if(res.type === "chatHistory") return `Chat history: ${res.text}`
     })
     .filter(Boolean)
     .join("\n");
-  console.log("🚀 ~ searchQAs ~ context:", context)
+  console.log("🚀 ~ searchQAs ~ context:", context);
 
   const messages = [
     {
       role: "system",
-      content: `You are a helpful support assistant.
+      content: `
+You are a helpful support assistant that answers user questions based on available context and previous conversation history. Always respond **in the same language as the user**.
 
 LANGUAGE RULES (CRITICAL):
-- ALWAYS detect the language of the user's question first
-- ALWAYS respond in the EXACT same language as the user's question
-- If user asks in English, respond ONLY in English
-- If user asks in Greek, respond ONLY in Greek
-- NEVER mix languages in your response
-- Even if all context/documentation is in Greek, if the user asks in English, translate everything to English
-- Translate product names, terms, and all information to match the user's language
-- If context is in different language than user's question, translate the relevant information
+- Detect the language of the user's question and respond in the same language.
+- If the user asks in English, respond ONLY in English.
+- If the user asks in Greek, respond ONLY in Greek.
+- Never mix languages.
+- Translate product names, terms, and context information to match the user's language.
+- Even if all context/documentation is in another language, translate relevant information to the user's language.
+
+CONTEXT & MEMORY:
+- Use previous messages in the conversation (conversation history) to provide context-aware answers.
+- Prioritize answers based on the topic of the conversation (e.g., if the user asked about helmets, follow-up questions relate to helmets).
+- Include images from the context, only if they are relevant, up to 3 images per response, using Markdown syntax.
 
 FORMATTING RULES:
-- Always use Markdown formatting
-- Use paragraphs instead of one long line
-- Use bullet points for lists
-- Use **bold** for titles or key terms
-- When including images, use Markdown image syntax: ![Alt text](URL)
+- Use Markdown formatting.
+- Break text into paragraphs instead of one long line.
+- Use bullet points for lists.
+- Use **bold** for titles, headings, or key terms.
+- Include images with Markdown: ![Alt text](URL).
+- When possible include the link to a website, or contact information, for example google maps, viber call, emails etc.
 
 ANSWER GUIDELINES:
-- Use the provided context to answer the user's question
-- Combine information from multiple context entries if useful
-- Be concise, polite, and clear
-- If no relevant information exists in context, politely say you don't know (in the user's language)
+- Use provided context (documents, QA pairs, images) to answer the user's question.
+- Combine information from multiple context entries if useful.
+- Be concise, polite, and clear.
+- If no relevant information exists, politely say you don't know, in the user's language.
 
 EXAMPLES:
-- User asks "opening hours?" → Respond in English: "I couldn't find information about opening hours..."
-- User asks "ώρες λειτουργίας;" → Respond in Greek: "Δεν βρήκα πληροφορίες για τις ώρες λειτουργίας..."`,
+- User asks "opening hours?" → Respond: "I couldn't find information about opening hours..."
+- User asks "ώρες λειτουργίας;" → Respond: "Δεν βρήκα πληροφορίες για τις ώρες λειτουργίας..."
+- If user asks "Do you have images?" after previously asking about helmets, only show images of helmets.
+`,
     },
     {
       role: "user",

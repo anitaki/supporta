@@ -15,13 +15,20 @@ import ReactMarkdown from "react-markdown";
 
 export default function ChatWidget() {
   const [messages, setMessages] = useState([
-  {
-    role: "assistant",
-    content: "Hello 👋! How can I help you today?",
-  },
-]);
+    {
+      role: "assistant",
+      content: "Hello 👋! How can I help you today?",
+    },
+  ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [conversationId, setConversationId] = useState(() => {
+    const saved = localStorage.getItem("conversationId");
+    if (saved) return saved;
+    const newId = crypto.randomUUID();
+    localStorage.setItem("conversationId", newId);
+    return newId;
+  });
 
   const params = new URLSearchParams(window.location.search);
   const widgetToken =
@@ -30,7 +37,7 @@ export default function ChatWidget() {
   const url = "http://localhost:8800/api";
 
   const fetchMessages = async () => {
-    const res = await axios.get(`${url}/message`, {
+    const res = await axios.get(`${url}/message?${conversationId}`, {
       headers: { "x-widget-token": widgetToken },
     });
     setMessages(res.data);
@@ -43,7 +50,7 @@ export default function ChatWidget() {
   const handleSendMessage = async (input) => {
     if (!input.trim() || loading) return;
 
-    const newMessage = { role: "user", content: input };
+    const newMessage = { conversationId, role: "user", content: input };
     setMessages((prev) => [...prev, newMessage]);
     setInput("");
     setLoading(true);
@@ -56,12 +63,13 @@ export default function ChatWidget() {
 
       // Get assistant reply
       const assistantReply = await axios.get(
-        `${url}/qa/search?q=${response.data.content}`,
+        `${url}/qa/search?q=${response.data.content}&conversationId=${conversationId}`,
         { headers: { "x-widget-token": widgetToken } }
       );
 
       // Save assistant reply
       const assistantMessage = {
+        conversationId,
         role: "assistant",
         content: assistantReply.data,
       };
@@ -117,12 +125,12 @@ export default function ChatWidget() {
             key={index}
             sx={{
               display: "flex",
-              alignItems: "center",
+              alignItems: "flex-start",
               gap: 1,
               p: 1,
               justifyContent:
                 message.role === "user" ? "flex-end" : "flex-start",
-              "& img": { maxWidth: "100%", borderRadius: 2, marginTop: 1 },
+              "& img": { maxWidth: "350px", borderRadius: 2, marginTop: 1 },
               "& p": { marginBottom: "6px" },
               "& ul": { marginLeft: "16px" },
             }}

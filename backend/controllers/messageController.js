@@ -2,7 +2,10 @@ const Message = require("../models/messageModel");
 
 const getMessages = async (req, res) => {
   try {
-    const messages = await Message.find({ businessId: req.businessId }).sort({
+    const messages = await Message.find({
+      businessId: req.businessId,
+      conversationId: req.query.conversationId,
+    }).sort({
       timestamp: 1,
     });
     res.json(messages);
@@ -13,8 +16,13 @@ const getMessages = async (req, res) => {
 
 const postMessage = async (req, res) => {
   try {
-    const { role, content } = req.body;
-    const message = new Message({ businessId: req.businessId, role, content });
+    const { conversationId, role, content } = req.body;
+    const message = new Message({
+      businessId: req.businessId,
+      conversationId,
+      role,
+      content,
+    });
     await message.save();
     res.json(message);
   } catch (err) {
