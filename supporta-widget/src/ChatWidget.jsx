@@ -143,7 +143,7 @@ export default function ChatWidget() {
             sx={{
               display: "flex",
               flexDirection: {
-                xs: "column",
+                xs: message.role==="user" ? "column-reverse" : "column",
                 sm: "row",
               },
               alignItems: "flex-start",
@@ -182,7 +182,10 @@ export default function ChatWidget() {
                 color: message.role === "user" ? "white" : "black",
                 borderRadius: 2,
                 p: 1.5,
-                maxWidth: "75%",
+                maxWidth: {
+                  xs: "100%", 
+                  sm: "75%",
+                },
                 wordBreak: "break-word",
               }}
             >
@@ -196,10 +199,10 @@ export default function ChatWidget() {
                       alt={props.alt || ""}
                       sx={{
                         display: "block",
-                        mt: 1, // margin-top
-                        borderRadius: 2, // 8px
-                        maxWidth: { xs: 240, sm: 350 }, // responsive maxWidth
-                        width: "100%", // scale down if container is smaller
+                        mt: 1, 
+                        borderRadius: 2, 
+                        maxWidth: { xs: 240, sm: 350 }, 
+                        width: "100%", 
                         height: "auto",
                       }}
                     />

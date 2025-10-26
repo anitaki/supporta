@@ -1,13 +1,12 @@
-const backendUrl = process.env.BACKEND_DOMAIN
-
 (function () {
   if (window.self !== window.top) return; // Prevents recursion of creating a chat widget inside another
   const businessId = document.currentScript.getAttribute("data-business");
+  const widgetToken = document.currentScript.getAttribute("data-widget-token")
   const logoUrl = document.currentScript.getAttribute("data-logo") || "http://localhost:8800/logo.png";
 
   // Create chat iframe
   const iframe = document.createElement("iframe");
-  iframe.src = `${backendUrl}/chat-widget?business=${businessId}&token=${widgetToken}`;;
+  iframe.src = `http://localhost:8800/chat-widget?business=${businessId}&token=${widgetToken}`;;
   iframe.style.cssText = `
     position: fixed;
     bottom: 90px;
@@ -24,6 +23,7 @@ const backendUrl = process.env.BACKEND_DOMAIN
     opacity: 0;
     transform: translateY(20px);
     transition: all 0.3s ease;
+      overflow-y: hidden;
   `;
   iframe.sandbox = "allow-scripts allow-same-origin allow-popups";
   document.body.appendChild(iframe);

@@ -30,19 +30,14 @@ app.use(cookieParser());
 // Public static files
 app.use(express.static(path.join(__dirname, "public")));
 
-app.get("/chat-widget", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "chat-widget.html"));
-});
+app.use(
+  "/chat-widget",
+  express.static(path.join(__dirname, "../supporta-widget/dist"))
+);
 
-/*
-// Serve the chat widget build
-app.use("/chat-widget", express.static(path.resolve("../chat-widget/build")));
-
-// Fallback for SPA routing if needed
-app.get("/chat-widget/*", (req, res) => {
-  res.sendFile(path.resolve("../chat-widget/build/index.html"));
+app.get(/^\/chat-widget(?:\/.*)?$/, (req, res) => {
+  res.sendFile(path.join(__dirname, "../supporta-widget/dist", "index.html"));
 });
-*/
 
 // API routes
 app.use("/api/auth", authRouter);
