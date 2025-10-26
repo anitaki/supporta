@@ -1,4 +1,5 @@
 const Message = require("../models/messageModel");
+const moderateUserInput = require("../utils/openaiUtils");
 
 const getMessages = async (req, res) => {
   try {
@@ -17,6 +18,22 @@ const getMessages = async (req, res) => {
 const postMessage = async (req, res) => {
   try {
     const { conversationId, role, content } = req.body;
+
+ const moderationWarning = await moderateUserInput(content);
+
+ if (moderationWarning) {
+   const deleted =  await Message.deleteOne(
+      { conversationId, content }
+    );
+   console.log("🚀 ~ postMessage ~ deleted:", deleted)
+
+    // Respond to user
+    return res.status(400).json({
+      msg: moderationWarning,
+      deleted: true,
+    });
+  }
+    
     const message = new Message({
       businessId: req.businessId,
       conversationId,

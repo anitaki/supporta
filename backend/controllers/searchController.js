@@ -11,12 +11,6 @@ const searchQAs = async (req, res) => {
   const { q, conversationId } = req.query;
   if (!q) return res.status(400).json({ msg: "Query is required" });
 
-  const moderationWarning = await moderateUserInput(q);
-  console.log("🚀 ~ searchQAs ~ moderationWarning:", moderationWarning);
-  if (moderationWarning) {
-    return res.status(400).json({ msg: moderationWarning });
-  }
-
   // Embed user query
   const queryEmbedding = await createEmbedding(q);
 
@@ -79,28 +73,75 @@ const searchQAs = async (req, res) => {
 
   // --- Search Images ---
   const imageResults = await File.aggregate([
-    {
-      $vectorSearch: {
-        index: "file_embedding_index",
-        path: "embedding",
-        queryVector: queryEmbedding,
-        numCandidates: 100,
-        limit: 5,
-        filter: {
-          businessId: new mongoose.Types.ObjectId(req.businessId),
-          type: "image",
-        },
+    // {
+    //   $vectorSearch: {
+    //     index: "file_embedding_index",
+    //     path: "embedding",
+    //     queryVector: queryEmbedding,
+    //     numCandidates: 100,
+    //     limit: 5,
+    //     filter: {
+    //       businessId: new mongoose.Types.ObjectId(req.businessId),
+    //       type: "image",
+    //     },
+    //   },
+    // },
+    // {
+    //   $project: {
+    //     type: { $literal: "image" },
+    //     title: 1,
+    //     description: 1,
+    //     url: 1,
+    //     score: { $meta: "vectorSearchScore" },
+    //   },
+    // },
+{
+    $vectorSearch: {
+      index: "file_embedding_index",
+      path: "embedding",
+      queryVector: queryEmbedding,
+      numCandidates: 100,
+      limit: 100, // fetch enough candidates to ensure unique URLs
+      filter: {
+        businessId: new mongoose.Types.ObjectId(req.businessId),
+        type: "image",
       },
     },
-    {
-      $project: {
-        type: { $literal: "image" },
-        title: 1,
-        description: 1,
-        url: 1,
-        score: { $meta: "vectorSearchScore" },
-      },
+  },
+  {
+    $addFields: {
+      score: { $meta: "vectorSearchScore" } // expose the vector search score
     },
+  },
+  {
+    $sort: { score: -1 } // highest score first
+  },
+  {
+    $group: {
+      _id: "$url", // group by URL to remove duplicates
+      type: { $first: "image" },
+      title: { $first: "$title" },
+      description: { $first: "$description" },
+      url: { $first: "$url" },
+      score: { $first: "$score" }, // keep the highest scoring doc per URL
+    },
+  },
+  {
+    $sort: { score: -1 } // optional: sort final results by score
+  },
+  {
+    $limit: 5 // take only the top 5 unique images
+  },
+  {
+    $project: {
+      _id: 0, // remove internal _id
+      type: 1,
+      title: 1,
+      description: 1,
+      url: 1,
+      score: 1,
+    },
+  },
   ]);
 
   // Get previous chat conversation
@@ -166,7 +207,7 @@ CONTEXT & MEMORY:
 - Prioritize answers based on the topic of the conversation (e.g., if the user asked about helmets, follow-up questions relate to helmets).
 - Only use external knowledge/general knowledge when the context does **not** contain enough information to answer the user's question.
 - If the context has relevant info (e.g., about shipping, products, or company policies), always use that first.
-- Include images from the context, only if they are relevant, up to 3 images per response, using Markdown syntax.
+- Include images from the context, only if relevant, up to 3 images per response, using Markdown syntax. If an image is duplicate, don't use it. 
 
 FORMATTING RULES:
 - Use Markdown formatting.

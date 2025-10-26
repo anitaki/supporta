@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import {
   Avatar,
@@ -7,11 +7,14 @@ import {
   TextField,
   CircularProgress,
 } from "@mui/material";
+import Lottie from "lottie-react";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import Logo from "./assets/logo-purple.svg";
-// import LoadingIcon from "./assets/lottie/Simple Loading Bar 2.json"
+import ChatTypingIndicator from "./assets/lottie/Chat typing indicator.json";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function ChatWidget() {
   const [messages, setMessages] = useState([
@@ -29,6 +32,7 @@ export default function ChatWidget() {
     localStorage.setItem("conversationId", newId);
     return newId;
   });
+  const endRef = useRef(null);
 
   const params = new URLSearchParams(window.location.search);
   const widgetToken =
@@ -38,9 +42,12 @@ export default function ChatWidget() {
 
   const fetchMessages = async () => {
     try {
-      const res = await axios.get(`${url}/message?${conversationId}`, {
-        headers: { "x-widget-token": widgetToken },
-      });
+      const res = await axios.get(
+        `${url}/message?conversationId=${conversationId}`,
+        {
+          headers: { "x-widget-token": widgetToken },
+        }
+      );
       setMessages((prev) => [...prev, ...res.data]);
     } catch (err) {
       console.error("Failed to get messages: ", err);
@@ -51,11 +58,15 @@ export default function ChatWidget() {
     fetchMessages();
   }, []);
 
+  useEffect(() => {
+    endRef.current?.scrollIntoView({behavior: "smooth"})
+  }, [messages])
+
   const handleSendMessage = async (input) => {
     if (!input.trim() || loading) return;
 
     const newMessage = { conversationId, role: "user", content: input };
-    setMessages((prev) => [...prev, newMessage]);
+
     setInput("");
     setLoading(true);
 
@@ -64,6 +75,8 @@ export default function ChatWidget() {
       const response = await axios.post(`${url}/message`, newMessage, {
         headers: { "x-widget-token": widgetToken },
       });
+
+      setMessages((prev) => [...prev, newMessage]);
 
       // Get assistant reply
       const assistantReply = await axios.get(
@@ -112,7 +125,7 @@ export default function ChatWidget() {
           fontSize: 16,
         }}
       >
-        Supporta Assistant
+        Supporta
       </Box>
 
       {/* Messages area */}
@@ -129,14 +142,22 @@ export default function ChatWidget() {
             key={index}
             sx={{
               display: "flex",
+              flexDirection: {
+                xs: "column",
+                sm: "row",
+              },
               alignItems: "flex-start",
               gap: 1,
               p: 1,
               justifyContent:
                 message.role === "user" ? "flex-end" : "flex-start",
-              "& img": { maxWidth: "350px", borderRadius: 2, marginTop: 1 },
               "& p": { marginBottom: "6px" },
-              "& ul": { marginLeft: "16px" },
+              "& ul": {
+                marginLeft: {
+                  xs: "0px",
+                  sm: "16px",
+                },
+              },
             }}
           >
             {message.role === "assistant" && (
@@ -165,7 +186,31 @@ export default function ChatWidget() {
                 wordBreak: "break-word",
               }}
             >
-              <ReactMarkdown>{message.content}</ReactMarkdown>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  img: ({ node, ...props }) => (
+                    <Box
+                      component="img"
+                      {...props}
+                      alt={props.alt || ""}
+                      sx={{
+                        display: "block",
+                        mt: 1, // margin-top
+                        borderRadius: 2, // 8px
+                        maxWidth: { xs: 240, sm: 350 }, // responsive maxWidth
+                        width: "100%", // scale down if container is smaller
+                        height: "auto",
+                      }}
+                    />
+                  ),
+                  a: ({ node, ...props }) => (
+                    <a {...props} target="_blank" rel="noopener noreferrer" />
+                  ),
+                }}
+              >
+                {message.content}
+              </ReactMarkdown>
             </Box>
             {message.role === "user" && (
               <Avatar alt={message.role} sx={{ width: 34, height: 34 }} />
@@ -184,14 +229,32 @@ export default function ChatWidget() {
               justifyContent: "flex-start",
             }}
           >
-            <Avatar sx={{ width: 34, height: 34 }} />
-            <Typography sx={{ color: "gray" }}>
-              Assistant is typing...
-            </Typography>
-            <CircularProgress size={16} sx={{ color: "gray" }} />
+            <Avatar
+              alt={"Typing..."}
+              sx={{
+                width: 34,
+                height: 34,
+                backgroundColor: "white",
+                p: 0.6,
+                "& img": {
+                  transform: "scale(0.9)",
+                  m: 0,
+                },
+              }}
+              src={Logo}
+            />
+            <Lottie
+              animationData={ChatTypingIndicator}
+              loop={true}
+              style={{ height: 60, width: 60 }}
+            />
           </Box>
         )}
+              {/* Reference point for scrolling */}
+      <div ref={endRef} />
       </Box>
+
+
 
       {/* Input area */}
       <Box
@@ -222,6 +285,10 @@ export default function ChatWidget() {
           sx={{
             color: loading ? "lightgray" : "#673ab7",
             cursor: loading ? "default" : "pointer",
+            transition: "transform 0.3s ease",
+            "&:hover": {
+              transform: "translateX(1px) rotate(-10deg)",
+            },
           }}
           onClick={() => handleSendMessage(input)}
         />

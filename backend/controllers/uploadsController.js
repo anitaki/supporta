@@ -96,6 +96,7 @@ const uploadImage = async (req, res) => {
   try {
     // Upload image to B2
     const fileUrl = await uploadFileToB2(req.file);
+    const safeUrl = encodeURI(fileUrl);
 
     // Start transaction
     session.startTransaction();
@@ -104,7 +105,7 @@ const uploadImage = async (req, res) => {
     const file = new File({
       originalName: req.file.originalname,
       type: "image",
-      url: fileUrl,
+      url: safeUrl,
       title: req.body.title,
       description: req.body.description || "",
       businessId: req.user.businessId,
@@ -155,6 +156,7 @@ const uploadPdf = async (req, res) => {
 
     // Upload file to cloud
     const fileUrl = await uploadFileToB2(req.file);
+    const safeUrl = encodeURI(fileUrl)
 
     // Start transaction
     session.startTransaction();
@@ -163,7 +165,7 @@ const uploadPdf = async (req, res) => {
     const file = new File({
       originalName: req.file.originalname,
       type: "pdf",
-      url: fileUrl,
+      url: safeUrl,
       title: req.body.title,
       description: req.body.description || "",
       businessId: req.user.businessId,
@@ -224,7 +226,6 @@ const updateFile = async (req, res) => {
 
   try {
     const existingFile = await File.findById(id);
-    console.log("🚀 ~ updateFile ~ existingFile:", existingFile)
     if (!existingFile)
       return res.status(404).json({ msg: "File not found" });
 
@@ -234,7 +235,6 @@ const updateFile = async (req, res) => {
       title: req.body.title,
       description: req.body.description,
     };
-    console.log("🚀 ~ updateFile ~ updates:", updates)
 
     // If a new file is uploaded
     if (req.file) {
@@ -243,7 +243,8 @@ const updateFile = async (req, res) => {
 
       // Upload new file
       const newFileUrl = await uploadFileToB2(req.file);
-      updates.url = newFileUrl;
+      const safeUrl = encodeURI(fileUrl);
+      updates.url = safeUrl;
       updates.originalName = req.file.originalname;
 
       const isPdf = req.file.mimetype === "application/pdf";
