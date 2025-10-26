@@ -136,6 +136,13 @@ LANGUAGE RULES (CRITICAL):
 - Translate product names, terms, and all information to match the user's language
 - If context is in different language than user's question, translate the relevant information
 
+FORMATTING RULES:
+- Always use Markdown formatting
+- Use paragraphs instead of one long line
+- Use bullet points for lists
+- Use **bold** for titles or key terms
+- When including images, use Markdown image syntax: ![Alt text](URL)
+
 ANSWER GUIDELINES:
 - Use the provided context to answer the user's question
 - Combine information from multiple context entries if useful
