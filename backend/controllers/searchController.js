@@ -118,10 +118,9 @@ const searchQAs = async (req, res) => {
         msg.role === "user"
           ? `User: ${msg.content}`
           : `Assistant: ${msg.content}`
-      )
+      ),
     ].join("\n"),
   };
-  console.log("🚀 ~ searchQAs ~ chatHistory:", chatHistoryObj);
 
   // Get response from openAI
   const openai = new OpenAI({
@@ -134,7 +133,6 @@ const searchQAs = async (req, res) => {
     ...imageResults,
     chatHistoryObj,
   ];
-  console.log("🚀 ~ searchQAs ~ combinedResults:", combinedResults);
 
   const context = combinedResults
     .map((res) => {
@@ -143,7 +141,7 @@ const searchQAs = async (req, res) => {
         return `Document: ${res.file?.title}\nContent: ${res.text}`;
       if (res.type === "image")
         return `Title: ${res.title}\nDescription: ${res?.description}\nURL: ${res.url}`;
-      if(res.type === "chatHistory") return `Chat history: ${res.text}`
+      if (res.type === "chatHistory") return `Chat history: ${res.text}`;
     })
     .filter(Boolean)
     .join("\n");
@@ -166,6 +164,8 @@ LANGUAGE RULES (CRITICAL):
 CONTEXT & MEMORY:
 - Use previous messages in the conversation (conversation history) to provide context-aware answers.
 - Prioritize answers based on the topic of the conversation (e.g., if the user asked about helmets, follow-up questions relate to helmets).
+- Only use external knowledge/general knowledge when the context does **not** contain enough information to answer the user's question.
+- If the context has relevant info (e.g., about shipping, products, or company policies), always use that first.
 - Include images from the context, only if they are relevant, up to 3 images per response, using Markdown syntax.
 
 FORMATTING RULES:
@@ -186,7 +186,7 @@ EXAMPLES:
 - User asks "opening hours?" → Respond: "I couldn't find information about opening hours..."
 - User asks "ώρες λειτουργίας;" → Respond: "Δεν βρήκα πληροφορίες για τις ώρες λειτουργίας..."
 - If user asks "Do you have images?" after previously asking about helmets, only show images of helmets.
-`,
+`
     },
     {
       role: "user",

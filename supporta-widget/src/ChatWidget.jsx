@@ -37,10 +37,14 @@ export default function ChatWidget() {
   const url = "http://localhost:8800/api";
 
   const fetchMessages = async () => {
-    const res = await axios.get(`${url}/message?${conversationId}`, {
-      headers: { "x-widget-token": widgetToken },
-    });
-    setMessages(res.data);
+    try {
+      const res = await axios.get(`${url}/message?${conversationId}`, {
+        headers: { "x-widget-token": widgetToken },
+      });
+      setMessages((prev) => [...prev, ...res.data]);
+    } catch (err) {
+      console.error("Failed to get messages: ", err);
+    }
   };
 
   useEffect(() => {
