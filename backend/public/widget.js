@@ -1,5 +1,4 @@
-// require("dotenv").config();
-// const url = process.env.BACKEND_DOMAIN
+const backendUrl = process.env.BACKEND_DOMAIN
 
 (function () {
   if (window.self !== window.top) return; // Prevents recursion of creating a chat widget inside another
@@ -8,7 +7,7 @@
 
   // Create chat iframe
   const iframe = document.createElement("iframe");
-  iframe.src = `http://localhost:8800/chat-widget?business=${businessId}`;
+  iframe.src = `${backendUrl}/chat-widget?business=${businessId}&token=${widgetToken}`;;
   iframe.style.cssText = `
     position: fixed;
     bottom: 90px;

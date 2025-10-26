@@ -13,9 +13,11 @@ const businessRouter = require("./routes/businessRouter");
 const qaRouter = require("./routes/qaRouter");
 const fileRouter = require("./routes/fileRouter");
 const uploadsRouter = require("./routes/uploadsRouter")
+const messageRouter = require("./routes/messageRouter")
+
 
 // Middleware
-const allowedOrigins = ["http://localhost:3000", "http://192.168.1.25:3000"];
+const allowedOrigins = ["http://localhost:3000", "http://192.168.1.25:3000", "http://localhost:5173"];
 app.use(
   cors({
     origin: allowedOrigins,
@@ -48,7 +50,8 @@ app.use("/api/users", usersRouter);
 app.use("/api/business", businessRouter);
 app.use("/api/qa", qaRouter);
 app.use("/api/file", fileRouter);
-app.use("/api/upload", uploadsRouter)
+app.use("/api/upload", uploadsRouter);
+app.use("/api/message", messageRouter);
 
 
 app.get("/", (_req, res) => {

@@ -29,7 +29,7 @@ const searchQAs = async (req, res) => {
         numCandidates: 100,
         limit: 5,
         filter: {
-          businessId: new mongoose.Types.ObjectId(req.user.businessId),
+          businessId: new mongoose.Types.ObjectId(req.businessId),
         },
       },
     },
@@ -54,7 +54,7 @@ const searchQAs = async (req, res) => {
         numCandidates: 100,
         limit: 5,
         filter: {
-          businessId: new mongoose.Types.ObjectId(req.user.businessId),
+          businessId: new mongoose.Types.ObjectId(req.businessId),
         },
       },
     },
@@ -86,7 +86,7 @@ const searchQAs = async (req, res) => {
         numCandidates: 100,
         limit: 5,
         filter: {
-          businessId: new mongoose.Types.ObjectId(req.user.businessId),
+          businessId: new mongoose.Types.ObjectId(req.businessId),
           type: "image",
         },
       },
@@ -119,6 +119,7 @@ const searchQAs = async (req, res) => {
     })
     .filter(Boolean)
     .join("\n");
+  console.log("🚀 ~ searchQAs ~ context:", context)
 
   const messages = [
     {

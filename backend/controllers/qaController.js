@@ -15,7 +15,7 @@ const getQAs = async (req, res) => {
 };
 
 // Get Q&A by id
-const getAQ = async (req, res) => {
+const getQA = async (req, res) => {
   try {
     const validatedId = validateObjectId(req.params.id);
     if (!validatedId) return res.status(400).json({ msg: "Bad request" });
@@ -30,7 +30,9 @@ const getAQ = async (req, res) => {
     if (!qa) return res.status(400).json({ msg: "Q&A not found" });
 
     res.json(qa);
-  } catch (err) {}
+  } catch (err) {
+       res.status(500).json({ error: "Failed to fetch QAs" });
+  }
 };
 
 // Create Q&A
@@ -140,4 +142,4 @@ const deleteQA = async (req, res) => {
   }
 };
 
-module.exports = { getQAs, getAQ, postQA, updateQA, deleteQA };
+module.exports = { getQAs, getQA, postQA, updateQA, deleteQA };

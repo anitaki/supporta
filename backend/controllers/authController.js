@@ -187,13 +187,13 @@ const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id)
       .select("-password")
-      .populate("businessId", "name");
+      .populate("businessId", "name widgetToken");
 
     if (!user) return res.status(404).json({ msg: "User not found" });
 
     res.json(user);
   } catch (err) {
-    res.status(500).json({
+    res.status(500).json({  
       msg: "Internal server error",
       err: process.env.NODE_ENV === "development" ? err.message : undefined,
     });

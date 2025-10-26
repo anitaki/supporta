@@ -6,12 +6,16 @@ const businessSchema = new Schema({
     type: String,
     required: true,
     unique: true,
-    trim: true
+    trim: true,
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
+  },
+  widgetToken: {
+    type: String,
+    default: () => require("crypto").randomBytes(64).toString("hex"),
   },
 });
 

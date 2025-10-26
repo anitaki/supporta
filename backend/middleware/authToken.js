@@ -9,6 +9,7 @@ const authenticateToken = (req, res, next) => {
   try {
     const verifiedUser = verifyToken(token, process.env.ACCESS_TOKEN_SECRET);
     req.user = verifiedUser;
+    console.log(req.user)
     next();
   } catch (err) {
     if (err.name === "TokenExpiredError")
