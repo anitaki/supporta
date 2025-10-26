@@ -14,7 +14,12 @@ import Logo from "./assets/logo-purple.svg";
 import ReactMarkdown from "react-markdown";
 
 export default function ChatWidget() {
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([
+  {
+    role: "assistant",
+    content: "Hello 👋! How can I help you today?",
+  },
+]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
