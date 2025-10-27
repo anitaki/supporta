@@ -32,11 +32,11 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use(
   "/chat-widget",
-  express.static(path.join(__dirname, "../supporta-widget/dist"))
+  express.static(path.join(__dirname, "/supporta-widget/dist"))
 );
 
 app.get(/^\/chat-widget(?:\/.*)?$/, (req, res) => {
-  res.sendFile(path.join(__dirname, "../supporta-widget/dist", "index.html"));
+  res.sendFile(path.join(__dirname, "/supporta-widget/dist", "index.html"));
 });
 
 // API routes
