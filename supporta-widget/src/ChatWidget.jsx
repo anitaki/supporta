@@ -14,7 +14,6 @@ import Logo from "./assets/logo-purple.svg";
 import ChatTypingIndicator from "./assets/lottie/Chat typing indicator.json";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { motion, AnimatePresence } from "framer-motion";
 
 export default function ChatWidget() {
   const [messages, setMessages] = useState([
