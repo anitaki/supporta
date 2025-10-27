@@ -17,7 +17,7 @@ const messageRouter = require("./routes/messageRouter")
 
 
 // Middleware
-const allowedOrigins = ["http://localhost:3000", "http://192.168.1.25:3000", "http://localhost:5173"];
+const allowedOrigins = ["http://localhost:3000", "http://192.168.1.25:3000", "http://localhost:5173", "https://supporta-ai.netlify.app/"];
 app.use(
   cors({
     origin: allowedOrigins,
