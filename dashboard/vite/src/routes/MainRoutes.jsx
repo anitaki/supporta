@@ -13,6 +13,7 @@ const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')))
 // sample page routing
 const QAManagement = Loadable(lazy(() => import('views/pages/qas')));
 const FileManagement = Loadable(lazy(() => import('views/pages/files')));
+const ChatAssistant = Loadable(lazy(() => import('views/pages/chat-assistant')))
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -47,6 +48,10 @@ const MainRoutes = {
         {
           path: '/file',
           element: <FileManagement />
+        },
+        {
+          path: '/chat-assistant',
+          element: <ChatAssistant />
         }
       ]
     }
