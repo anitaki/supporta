@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Box, TextField, Button, InputLabel, FormControl, Select, MenuItem, Typography, Divider, CircularProgress } from '@mui/material';
 import { MuiColorInput } from 'mui-color-input';
-import { Add, Upload, Edit, Delete } from '@mui/icons-material';
+import { Upload } from '@mui/icons-material';
 
 export default function CustomizationTab() {
   const defaultColor = 'rgba(101, 23, 171, 1)'; // will be business color from backend
