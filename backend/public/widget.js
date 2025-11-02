@@ -4,14 +4,15 @@
   const backendUrl = window.location.hostname === "localhost"
   ? "http://localhost:8800"
   : "https://supporta.onrender.com";
-  const businessId = document.currentScript.getAttribute("data-business");
+  // const businessId = document.currentScript.getAttribute("data-business");
   const widgetToken = document.currentScript.getAttribute("data-widget-token")
   const logoUrl = document.currentScript.getAttribute("data-logo") || `${backendUrl}/logo.png`;
 
 
   // Create chat iframe
   const iframe = document.createElement("iframe");
-  iframe.src = `${backendUrl}/chat-widget?business=${businessId}&token=${widgetToken}`;
+  // iframe.src = `${backendUrl}/chat-widget?business=${businessId}&token=${widgetToken}`;
+  iframe.src = `${backendUrl}/chat-widget?token=${widgetToken}`;
   iframe.setAttribute("scrolling", "no");
   iframe.style.cssText = `
     position: fixed;

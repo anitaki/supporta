@@ -294,7 +294,7 @@ export default function ChatWidget() {
                   sx={{
                     width: 34,
                     height: 34,
-                    backgroundColor: "white",
+                    backgroundColor: settings.color,
                     p: 0.6,
                   }}
                   src={settings.logo}
