@@ -36,12 +36,19 @@ const getBusiness = async (req, res) => {
   }
 };
 
-const updateBusiness = async (req, res) => { // add business validation
+const updateBusiness = async (req, res) => {
+  // add business validation
   try {
+    const allowed = ["name", "widgetToken", "logo", "color", "font", "greeting"];
+    const updated = Object.fromEntries(
+      Object.entries(req.body).filter(
+        ([key, value]) => allowed.includes(key) && value.trim() !== ""
+      )
+    );
     const business = await Business.findByIdAndUpdate(
-   { _id: req.user.businessId },
-  { name: req.body.name },
-  { new: true }
+      { _id: req.user.businessId },
+      { $set: updated },
+      { new: true }
     );
     if (!business) return res.status(404).json({ msg: "Business not found" });
 

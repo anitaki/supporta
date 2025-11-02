@@ -1,7 +1,6 @@
 (function () {
   if (window.self !== window.top) return; // Prevents recursion of creating a chat widget inside another
-  // const backendUrl = "http://localhost:8800"
-  // const backendUrl = "https://supporta.onrender.com"
+
   const backendUrl = window.location.hostname === "localhost"
   ? "http://localhost:8800"
   : "https://supporta.onrender.com";

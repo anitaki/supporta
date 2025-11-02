@@ -6,11 +6,12 @@ const validateBusiness = [
     .withMessage("Business name is required")
     .isString()
     .withMessage("Business name must be a string")
-    .isLength({ min: 2, max: 255 })
-    .withMessage("Business name must be between 2–255 characters")
+    .isLength({ min: 1, max: 255 })
+    .withMessage("Business name must be between 1–255 characters")
     .trim(),
 
-      body("widgetToken")
+  body("widgetToken")
+    .optional()
     .isString()
     .withMessage("Token must be a string")
     .isLength({ min: 64, max: 140 })
@@ -18,6 +19,38 @@ const validateBusiness = [
     .notEmpty()
     .withMessage("Token is required")
     .trim(),
-]
+
+  body("logo")
+    .optional()
+    .isString()
+    .withMessage("Logo name must be a string")
+    .isLength({ min: 1, max: 255 })
+    .withMessage("Logo name must be between 1–255 characters")
+    .trim(),
+
+  body("color")
+    .optional()
+    .isString()
+    .withMessage("Color name must be a string")
+    .isLength({ min: 1, max: 255 })
+    .withMessage("Color name must be between 1–255 characters")
+    .trim(),
+
+  body("font")
+    .optional()
+    .isString()
+    .withMessage("Font name must be a string")
+    .isLength({ min: 1, max: 255 })
+    .withMessage("Font name must be between 1–255 characters")
+    .trim(),
+
+  body("greeting")
+    .optional()
+    .isString()
+    .withMessage("Greeting name must be a string")
+    .isLength({ min: 1, max: 255 })
+    .withMessage("Greeting name must be between 1–255 characters")
+    .trim(),
+];
 
 module.exports = validateBusiness;
