@@ -51,6 +51,14 @@ const validateBusiness = [
     .isLength({ min: 1, max: 255 })
     .withMessage("Greeting name must be between 1–255 characters")
     .trim(),
+
+  body("theme")
+    .optional()
+    .isString()
+    .withMessage("Theme name must be a string")
+    .isIn(["light", "dark", "auto"])
+    .withMessage("Theme must be one of: light, dark, or auto")
+    .trim(),
 ];
 
 module.exports = validateBusiness;

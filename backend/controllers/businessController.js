@@ -17,7 +17,7 @@ const getBusinesses = async (req, res) => {
   }
 };
 
-const getBusiness = async (req, res) => {
+const getBusinessWithToken = async (req, res) => {
   try {
     const business = await Business.findOne({
       _id: req.user.businessId,
@@ -36,10 +36,36 @@ const getBusiness = async (req, res) => {
   }
 };
 
+const getBusinessWithWidgetToken = async (req, res) => {
+  try {
+    const business = await Business.findOne({
+      _id: req.businessId,
+    }).select("name logo theme color font greeting");
+    if (!business) return res.status(404).json({ msg: "Business not found" });
+
+    // business.populate("owner");
+
+    return res.status(200).json(business);
+  } catch (err) {
+    res.status(500).json({
+      msg: "Internal server error",
+      err: process.env.NODE_ENV === "development" ? err.message : undefined,
+    });
+  }
+};
+
 const updateBusiness = async (req, res) => {
   // add business validation
   try {
-    const allowed = ["name", "widgetToken", "logo", "color", "font", "greeting"];
+    const allowed = [
+      "name",
+      "widgetToken",
+      "logo",
+      "color",
+      "font",
+      "greeting",
+      "theme"
+    ];
     const updated = Object.fromEntries(
       Object.entries(req.body).filter(
         ([key, value]) => allowed.includes(key) && value.trim() !== ""
@@ -80,4 +106,10 @@ const deleteBusiness = async (req, res) => {
   }
 };
 
-module.exports = { getBusinesses, getBusiness, updateBusiness, deleteBusiness };
+module.exports = {
+  getBusinesses,
+  getBusinessWithToken,
+  getBusinessWithWidgetToken,
+  updateBusiness,
+  deleteBusiness,
+};

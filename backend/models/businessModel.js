@@ -22,13 +22,18 @@ const businessSchema = new Schema({
     type: String,
     default: `${backendUrl}/logo.png`,
   },
+  theme: {
+    type: String,
+    enum: ["light", "dark"],
+    default: "auto"
+  },
   color: {
     type: String,
     default: "rgba(103, 58, 183, 1)", 
   },
   font: {
     type: String,
-    default: "Inter, Helvetica, sans-serif",
+    default: "'Inter', Helvetica, sans-serif",
   },
   greeting: {
     type: String,
