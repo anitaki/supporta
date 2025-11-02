@@ -14,6 +14,7 @@ import ChatTypingIndicator from "./assets/lottie/Chat typing indicator.json";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { motion, AnimatePresence } from "framer-motion";
+import { lighten } from "@mui/material/styles";
 
 export default function ChatWidget() {
   const params = new URLSearchParams(window.location.search);
@@ -52,10 +53,7 @@ export default function ChatWidget() {
   });
 
   const [messages, setMessages] = useState([
-    {
-      role: "assistant",
-      content: "Hello 👋! How can I help you today?",
-    },
+
   ]);
 
   const endRef = useRef(null);
@@ -74,6 +72,10 @@ export default function ChatWidget() {
         font: res.data.font || "'Inter', Helvetica, sans-serif",
         greeting: res.data.greeting || "Hello 👋! How can I help you today?",
       });
+      setMessages([    {
+      role: "assistant",
+      content: res.data.greeting|| "Hello 👋! How can I help you today?",
+    },])
     } catch (err) {
       console.error("Failed to load business info:", err);
     } finally {
@@ -143,6 +145,27 @@ export default function ChatWidget() {
     }
   };
 
+  // Theme
+  // --- Derived theme flag
+  const isDarkTheme =
+    settings.theme === "dark" ||
+    (settings.theme === "auto" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+  // --- Theme palette
+  const themeColors = {
+    background: isDarkTheme ? "#121212" : "#fafafa",
+    headerBg: settings.color,
+    headerText: "#ffffff",
+    assistantBg: isDarkTheme ? "#1E1E1E" : "#ffffff",
+    assistantText: isDarkTheme ? "#EAEAEA" : "#000000",
+    userBg: settings.color,
+    userText: "#ffffff",
+    inputBg: isDarkTheme ? "#1E1E1E" : "#ffffff",
+    inputText: isDarkTheme ? "#EAEAEA" : "#000000",
+    border: isDarkTheme ? "#2C2C2C" : "#dddddd",
+  };
+
   // --- Fade-in before return
   if (widgetLoading) {
     return (
@@ -174,24 +197,25 @@ export default function ChatWidget() {
             display: "flex",
             flexDirection: "column",
             height: "100vh",
-            backgroundColor: "#fff",
+            backgroundColor: themeColors.background,
             borderRadius: 2,
             boxShadow: 2,
             overflow: "hidden",
             fontFamily: settings.font,
+            color: themeColors.assistantText,
           }}
         >
           {/* Header */}
           <Box
             sx={{
-              backgroundColor: settings.color,
-              color: "white",
+              backgroundColor: themeColors.headerBg,
+              color: themeColors.headerText,
               p: 2,
               fontWeight: 600,
               fontSize: 16,
             }}
           >
-            {business.name} AI assistant
+            {business.name} AI Assistant
           </Box>
 
           {/* Messages area */}
@@ -200,7 +224,7 @@ export default function ChatWidget() {
               flex: 1,
               p: 2,
               overflowY: "auto",
-              backgroundColor: "#fafafa",
+              backgroundColor: themeColors.background,
             }}
           >
             {messages.map((message, index) => (
@@ -208,97 +232,70 @@ export default function ChatWidget() {
                 key={index}
                 sx={{
                   display: "flex",
-                  flexDirection:
-                    message.role === "user" ? "row-reverse" : "row",
                   alignItems: "flex-start",
                   gap: 1,
                   p: 1,
+                  justifyContent:
+                    message.role === "user" ? "flex-end" : "flex-start",
+                  a: {
+                    color: settings.color || "#82B1FF",
+                    textDecoration: "none",
+                    "&:hover": {
+                      color: `${lighten(settings.color || "#82B1FF", 0.2)}`,
+                      textDecoration: "underline",
+                    },
+                  },
                 }}
               >
                 {message.role === "assistant" && (
                   <Avatar
                     alt={message.role}
+                    src={settings.logo}
                     sx={{
                       width: 34,
                       height: 34,
                       backgroundColor: settings.color,
                       p: 0.6,
-                      "& img": { transform: "scale(0.9)", m: 0 },
                     }}
-                    src={settings.logo}
                   />
                 )}
 
                 <Box
                   sx={{
                     backgroundColor:
-                      message.role === "user" ? settings.color : "#fff",
-                    color: message.role === "user" ? "white" : "black",
+                      message.role === "user"
+                        ? themeColors.userBg
+                        : themeColors.assistantBg,
+                    color:
+                      message.role === "user"
+                        ? themeColors.userText
+                        : themeColors.assistantText,
                     borderRadius: 2,
                     p: 1.5,
                     maxWidth: { xs: "100%", sm: "75%" },
                     wordBreak: "break-word",
+                    border: `1px solid ${themeColors.border}`,
                   }}
                 >
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      img: ({ node, ...props }) => (
-                        <Box
-                          component="img"
-                          {...props}
-                          alt={props.alt || ""}
-                          sx={{
-                            display: "block",
-                            mt: 1,
-                            borderRadius: 2,
-                            maxWidth: { xs: 240, sm: 350 },
-                            width: "100%",
-                            height: "auto",
-                          }}
-                        />
-                      ),
-                      a: ({ node, ...props }) => (
-                        <a
-                          {...props}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        />
-                      ),
-                    }}
-                  >
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {message.content}
                   </ReactMarkdown>
                 </Box>
 
                 {message.role === "user" && (
-                  <Avatar
-                    alt={message.role}
-                    sx={{ width: 34, height: 34, backgroundColor: "#ddd" }}
-                  />
+                  <Avatar alt={message.role} sx={{ width: 34, height: 34 }} />
                 )}
               </Box>
             ))}
 
-            {/* Loading indicator */}
             {loading && (
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  p: 1,
-                  justifyContent: "flex-start",
-                }}
-              >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1, p: 1 }}>
                 <Avatar
-                  alt={"Typing..."}
                   sx={{
                     width: 34,
                     height: 34,
-                    backgroundColor: settings.color,
+                    backgroundColor: "white",
                     p: 0.6,
-                    "& img": { transform: "scale(0.9)", m: 0 },
                   }}
                   src={settings.logo}
                 />
@@ -309,8 +306,6 @@ export default function ChatWidget() {
                 />
               </Box>
             )}
-
-            {/* Reference point for scrolling */}
             <div ref={endRef} />
           </Box>
 
@@ -321,10 +316,16 @@ export default function ChatWidget() {
               alignItems: "center",
               gap: 1,
               p: 2,
-              borderTop: "1px solid #ddd",
+              borderTop: `1px solid ${themeColors.border}`,
+              backgroundColor: themeColors.inputBg,
             }}
           >
-            <AttachFileIcon sx={{ color: "gray", cursor: "pointer" }} />
+            <AttachFileIcon
+              sx={{
+                color: isDarkTheme ? "#A0A0A0" : "gray",
+                cursor: "pointer",
+              }}
+            />
             <TextField
               fullWidth
               placeholder="Type your message..."
@@ -338,17 +339,23 @@ export default function ChatWidget() {
                 }
               }}
               disabled={loading}
+              sx={{
+                input: {
+                  color: themeColors.inputText,
+                  backgroundColor: themeColors.inputBg,
+                },
+              }}
             />
             <SendRoundedIcon
               sx={{
                 color: loading ? "lightgray" : settings.color,
                 cursor: loading ? "default" : "pointer",
                 transition: "transform 0.3s ease",
-                "&:hover": !loading && {
+                "&:hover": {
                   transform: "translateX(1px) rotate(-10deg)",
                 },
               }}
-              onClick={() => !loading && handleSendMessage(input)}
+              onClick={() => handleSendMessage(input)}
             />
           </Box>
         </Box>
