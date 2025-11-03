@@ -245,10 +245,10 @@ export default function ChatWidget() {
                     width: "auto",
                     height: "auto",
                     borderRadius: 8,
-                    marginTop: 2,
+                    marginBlock: 2,
                   },
                   "& p": { marginBottom: "6px" },
-                  "& ul": { marginLeft: "16px" },
+                  "& ul, ol": { paddingLeft: "25px" },
                   "& li p": { display: "flex", flexDirection: "column"},
                   a: {
                     color: settings.color || "#82B1FF",
