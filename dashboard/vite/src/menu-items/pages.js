@@ -31,6 +31,14 @@ const pages = {
           icon: icons.IconFileNeutral,
           breadcrumbs: false
         },
+          {
+          id: 'chat-assistant',
+          title: 'Chat Assistant',
+          type: 'item',
+          url: '/chat-assistant',
+          icon: icons.IconFileNeutral,
+          breadcrumbs: false
+        },
   ]
 };
 

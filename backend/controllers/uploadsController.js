@@ -97,6 +97,7 @@ const uploadImage = async (req, res) => {
     // Upload image to B2
     const fileUrl = await uploadFileToB2(req.file);
     const safeUrl = encodeURI(fileUrl);
+    console.log("🚀 ~ uploadImage ~ safeUrl:", safeUrl)
 
     // Start transaction
     session.startTransaction();
