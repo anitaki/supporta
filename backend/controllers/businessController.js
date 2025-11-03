@@ -21,10 +21,11 @@ const getBusinesses = async (req, res) => {
 };
 
 const getBusinessWithToken = async (req, res) => {
+
   try {
     const business = await Business.findOne({
       _id: req.user.businessId,
-      owner: req.user._id,
+      owner: req.user.id,
     });
 
     if (!business) return res.status(404).json({ msg: "Business not found" });
