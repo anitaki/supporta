@@ -4,6 +4,7 @@
   const backendUrl = window.location.hostname === "localhost"
   ? "http://localhost:8800"
   : "https://supporta.onrender.com";
+
   // const businessId = document.currentScript.getAttribute("data-business");
   const widgetToken = document.currentScript.getAttribute("data-widget-token")
   const logoUrl = document.currentScript.getAttribute("data-logo") || `${backendUrl}/logo.png`;

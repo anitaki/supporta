@@ -69,7 +69,7 @@ export default function ChatWidget() {
         logo: res.data.logo || `${backendUrl}/logo.png`,
         color: res.data.color || "rgba(103, 58, 183, 1)",
         theme: res.data.theme || "auto",
-        font: res.data.font || "'Inter', Helvetica, sans-serif",
+        font: res.data.font ? `${res.data.font}, Helvetica, sans-serif` : "'Inter', Helvetica, sans-serif",
         greeting: res.data.greeting || "Hello 👋! How can I help you today?",
       });
       setMessages([    {

@@ -1,7 +1,10 @@
+const fs = require("fs");
 const Business = require("../models/businessModel");
 const User = require("../models/userModel");
 const { validationResult } = require("express-validator");
 const validateObjectId = require("../validations/objectIdValidation");
+const { uploadFileToB2, deleteFileFromB2 } = require("../utils/b2Storage");
+const mongoose = require("mongoose");
 
 const getBusinesses = async (req, res) => {
   try {
@@ -21,8 +24,9 @@ const getBusinessWithToken = async (req, res) => {
   try {
     const business = await Business.findOne({
       _id: req.user.businessId,
-      owner: req.user.id,
+      owner: req.user._id,
     });
+
     if (!business) return res.status(404).json({ msg: "Business not found" });
 
     business.populate("owner");
@@ -55,7 +59,9 @@ const getBusinessWithWidgetToken = async (req, res) => {
 };
 
 const updateBusiness = async (req, res) => {
-  // add business validation
+  let fileUrl;
+  let safeUrl;
+
   try {
     const allowed = [
       "name",
@@ -64,25 +70,51 @@ const updateBusiness = async (req, res) => {
       "color",
       "font",
       "greeting",
-      "theme"
+      "theme",
     ];
-    const updated = Object.fromEntries(
-      Object.entries(req.body).filter(
-        ([key, value]) => allowed.includes(key) && value.trim() !== ""
-      )
-    );
-    const business = await Business.findByIdAndUpdate(
-      { _id: req.user.businessId },
-      { $set: updated },
-      { new: true }
-    );
+
+    const business = await Business.findById(req.user.businessId);
     if (!business) return res.status(404).json({ msg: "Business not found" });
 
-    business.populate("owner");
+    if (req.file) {
+      // Delete previous logo if exists
+      if (business.logo) {
+        await deleteFileFromB2(business.logo);
+      }
 
-    return res.status(200).json(business);
+      fileUrl = await uploadFileToB2(req.file);
+      safeUrl = encodeURI(fileUrl);
+    }
+
+    const updated = Object.fromEntries(
+      Object.entries(req.body).filter(
+        ([key, value]) =>
+          allowed.includes(key) && value && value.toString().trim() !== ""
+      )
+    );
+
+    if (safeUrl) updated.logo = safeUrl;
+
+    const updatedBusiness = await Business.findByIdAndUpdate(
+      req.user.businessId,
+      { $set: updated },
+      { new: true }
+    ).populate("owner");
+
+    if (req.file) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (e) {
+        console.warn("Error deleting temp file:", e);
+      }
+    }
+
+    return res.status(200).json(updatedBusiness);
   } catch (err) {
-    res.status(500).json({
+    if (fileUrl) await deleteFileFromB2(fileUrl);
+
+    console.error("updateBusiness error:", err);
+    return res.status(500).json({
       msg: "Internal server error",
       err: process.env.NODE_ENV === "development" ? err.message : undefined,
     });
@@ -93,6 +125,7 @@ const updateBusiness = async (req, res) => {
 // For now, business is created with the new user and is deleted when user is deleted
 
 const deleteBusiness = async (req, res) => {
+  // also delete all images and files from b2
   try {
     const business = await Business.findByIdAndDelete(req.user.businessId);
     if (!business) return res.status(404).json({ msg: "Business not found" });
