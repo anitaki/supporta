@@ -240,7 +240,7 @@ export default function ChatWidget() {
                   p: 1,
                   justifyContent:
                     message.role === "user" ? "flex-end" : "flex-start",
-                  "& img": {
+                  "& .MuiBox-root img": {
                     maxWidth: "50dvw",
                     width: "auto",
                     height: "auto",
