@@ -51,6 +51,7 @@ export default function ChatWidget() {
     logo: `${backendUrl}/logo.png`,
     greeting: "Hello 👋! How can I help you today?",
   });
+  console.log("🚀 ~ ChatWidget ~ settings:", settings)
 
   const [messages, setMessages] = useState([
 

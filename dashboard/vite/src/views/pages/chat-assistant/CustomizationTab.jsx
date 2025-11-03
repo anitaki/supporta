@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Box, TextField, Button, InputLabel, FormControl, Select, MenuItem, Typography, Divider, CircularProgress } from '@mui/material';
 import { MuiColorInput } from 'mui-color-input';
-import { Upload } from '@mui/icons-material';
 import { useAuth } from '../../../contexts/AuthContext';
 import UploadLogo from './UploadLogo';
 
@@ -184,10 +183,10 @@ export default function CustomizationTab() {
         <Divider />
 
         {/* Logo upload */}
-        <UploadLogo logo={logo} setLogo={setLogo} uploading={uploading} color={color} />
+        <UploadLogo logo={logo} setLogo={setLogo} uploading={uploading} color={color} setUploading={setUploading}/>
 
         {/* Cancel and Save button */}
-        <Box display="flex" justifyContent="flex-end" width="100%">
+        <Box display="flex" justifyContent="flex-end" width="100%" gap={1}>
           <Button onClick={handleCancel} sx={{ alignSelf: 'flex-end' }}>
             Cancel
           </Button>

@@ -1,18 +1,39 @@
-(function () {
+(async function () {
   if (window.self !== window.top) return; // Prevents recursion of creating a chat widget inside another
 
   const backendUrl = window.location.hostname === "localhost"
   ? "http://localhost:8800"
   : "https://supporta.onrender.com";
 
-  // const businessId = document.currentScript.getAttribute("data-business");
-  const widgetToken = document.currentScript.getAttribute("data-widget-token")
-  const logoUrl = document.currentScript.getAttribute("data-logo") || `${backendUrl}/logo.png`;
+  console.log("🚀 ~ backendUrl:", backendUrl);
 
+  // const businessId = document.currentScript.getAttribute("data-business");
+  const widgetToken = document.currentScript.getAttribute("data-widget-token");
+
+  // Fetch widget settings
+  let settings = {
+    logo: `${backendUrl}/logo.png`,
+    color: "rgba(103, 58, 183, 1)",
+  };
+
+  try {
+    const res = await fetch(`${backendUrl}/api/business/settings`, {
+      method: "GET",
+      headers: {
+        "x-widget-token": widgetToken,
+      },
+    });
+    const data = await res.json();
+    settings = {
+      logo: data.logo || settings.logo,
+      color: data.color || settings.color,
+    };
+  } catch (err) {
+    console.log("Error fetching widget settings: ", err);
+  }
 
   // Create chat iframe
   const iframe = document.createElement("iframe");
-  // iframe.src = `${backendUrl}/chat-widget?business=${businessId}&token=${widgetToken}`;
   iframe.src = `${backendUrl}/chat-widget?token=${widgetToken}`;
   iframe.setAttribute("scrolling", "no");
   iframe.style.cssText = `
@@ -34,6 +55,7 @@
     overflow-y: auto;
   `;
   iframe.sandbox = "allow-scripts allow-same-origin allow-popups";
+  console.log("iframe: ", iframe.src)
   document.body.appendChild(iframe);
 
   // Create chat button
@@ -47,7 +69,7 @@
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background: #673ab7;
+    background: ${settings.color};
     cursor: pointer;
     z-index: 9999;
     display: flex;
@@ -59,7 +81,7 @@
 
   // Add logo inside button
   const logo = document.createElement("img");
-  logo.src = logoUrl;
+  logo.src = settings.logo;
   logo.alt = "Supporta AI";
   logo.style.width = "70%";
   logo.style.height = "70%";
@@ -87,11 +109,7 @@
 
   // Optional: Close iframe if clicked outside
   document.addEventListener("click", (e) => {
-    if (
-      isOpen &&
-      !iframe.contains(e.target) &&
-      !button.contains(e.target)
-    ) {
+    if (isOpen && !iframe.contains(e.target) && !button.contains(e.target)) {
       button.click();
     }
   });
@@ -114,4 +132,3 @@
   window.addEventListener("resize", adjustForMobile);
   adjustForMobile();
 })();
-
