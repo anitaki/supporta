@@ -51,11 +51,9 @@ export default function ChatWidget() {
     logo: `${backendUrl}/logo.png`,
     greeting: "Hello 👋! How can I help you today?",
   });
-  console.log("🚀 ~ ChatWidget ~ settings:", settings)
+  console.log("🚀 ~ ChatWidget ~ settings:", settings);
 
-  const [messages, setMessages] = useState([
-
-  ]);
+  const [messages, setMessages] = useState([]);
 
   const endRef = useRef(null);
 
@@ -70,13 +68,17 @@ export default function ChatWidget() {
         logo: res.data.logo || `${backendUrl}/logo.png`,
         color: res.data.color || "rgba(103, 58, 183, 1)",
         theme: res.data.theme || "auto",
-        font: res.data.font ? `${res.data.font}, Helvetica, sans-serif` : "'Inter', Helvetica, sans-serif",
+        font: res.data.font
+          ? `${res.data.font}, Helvetica, sans-serif`
+          : "'Inter', Helvetica, sans-serif",
         greeting: res.data.greeting || "Hello 👋! How can I help you today?",
       });
-      setMessages([    {
-      role: "assistant",
-      content: res.data.greeting|| "Hello 👋! How can I help you today?",
-    },])
+      setMessages([
+        {
+          role: "assistant",
+          content: res.data.greeting || "Hello 👋! How can I help you today?",
+        },
+      ]);
     } catch (err) {
       console.error("Failed to load business info:", err);
     } finally {
@@ -238,6 +240,16 @@ export default function ChatWidget() {
                   p: 1,
                   justifyContent:
                     message.role === "user" ? "flex-end" : "flex-start",
+                  "& img": {
+                    maxWidth: "50dvw",
+                    width: "auto",
+                    height: "auto",
+                    borderRadius: 8,
+                    marginTop: 2,
+                  },
+                  "& p": { marginBottom: "6px" },
+                  "& ul": { marginLeft: "16px" },
+                  "& li p": { display: "flex", flexDirection: "column"},
                   a: {
                     color: settings.color || "#82B1FF",
                     textDecoration: "none",
