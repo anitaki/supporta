@@ -1,12 +1,17 @@
 import { useState } from 'react';
 import { Tabs, Tab, Typography, Box, Card, CardContent } from '@mui/material';
 import CustomizationTab from './CustomizationTab';
+import EmbedSnippetTab from './EmbedSnippetTab';
 
 export default function ChatAssistant() {
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState(() => {
+    const savedTab = localStorage.getItem('chatAssistantActiveTab');
+    return savedTab !== null ? parseInt(savedTab, 10) : 0;
+  });
 
   const handleChange = (event, value) => {
     setActiveTab(value);
+      localStorage.setItem('chatAssistantActiveTab', value);
   };
 
   return (
@@ -24,6 +29,7 @@ export default function ChatAssistant() {
             <Tab label="Chat History" />
           </Tabs>
           {activeTab === 0 && <CustomizationTab />}
+          {activeTab === 1 && <EmbedSnippetTab />}
         </CardContent>
       </Card>
     </Box>
