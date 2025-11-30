@@ -1,288 +1,127 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
-  Button,
-  Card,
-  CardContent,
-  Typography,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
   IconButton,
+  Typography,
   CircularProgress
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import { Add, Upload, Edit, Delete } from '@mui/icons-material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ReactMarkdown from 'react-markdown';
 import { useAuth } from '../../../contexts/AuthContext';
-import { formatDate } from '../../../utils/formatDate';
-import { CustomSnackbar } from '../../../ui-component/extended/Snackbar';
-const API_URL = import.meta.env.VITE_API_URL;
 
-export default function QAManagement() {
-  const [qas, setQAs] = useState([]);
-  const [open, setOpen] = useState(false);
-  const [editingQA, setEditingQA] = useState(null);
-  const [form, setForm] = useState({ question: '', answer: '' });
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: '',
-    severity: ''
-  });
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const [selectedQA, setSelectedQA] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [loading, setLoading] = useState(false)
-
+export default function ChatHistoryTab() {
   const { api } = useAuth();
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [widgetToken, setWidgetToken] = useState(null);
+  const [expandedRow, setExpandedRow] = useState(null); // for accordion expansion
 
-  const fetchQAs = async () => {
+  const fetchWidgetToken = async () => {
     try {
-      const res = await api.get(`/qa`);
-      setQAs(res.data);
+      const res = await api.get('/business');
+      setWidgetToken(res.data.widgetToken);
     } catch (err) {
-      console.error('Error fetching QAs:', err);
+      console.log('Error fetching token: ', err);
     }
   };
 
-  useEffect(() => {
-    fetchQAs();
-  }, []);
-
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === 'clickaway') return;
-    setSnackbar({ ...snackbar, open: false });
-  };
-
-  // Add/Edit QA
-  const handleSave = async () => {
+  const fetchHistory = async () => {
+    setLoading(true);
     try {
-        setLoading(true);
-      if (editingQA) {
-        await api.put(`/qa/${editingQA._id}`, form);
-      } else {
-        await api.post(`${API_URL}/qa`, form);
-      }
-      setLoading(true)
-      setOpen(false);
-      setEditingQA(null);
-      fetchQAs();
-      setSnackbar({ open: true, severity: 'success', message: 'Your QA was saved successfully' });
-    } catch (err) {
-      const { msg } = err.response?.data?.msg[0] || {};
-
-      if (msg) {
-        setSnackbar({
-          open: true,
-          severity: 'error',
-          message: msg
-        });
-      } else {
-        setSnackbar({
-          open: true,
-          severity: 'error',
-          message: 'Something went wrong. Please try again.'
-        });
-        setOpen(false);
-          setLoading(false)
-        setEditingQA(null);
-      }
-      console.error('Error saving QA:', err);
-    } finally {
-        setLoading(false);
-    }
-  };
-
-  // Delete QA
-  const confirmDelete = (qa) => {
-    setSelectedQA(qa);
-    setOpenDeleteDialog(true);
-  };
-
-  const handleDelete = async () => {
-    try {
-      await api.delete(`qa/${selectedQA._id}`);
-      setOpenDeleteDialog(false);
-      setSelectedQA(null);
-      fetchQAs();
-      setSnackbar({ open: true, severity: 'success', message: 'Your QA was deleted successfully' });
-    } catch (err) {
-      console.error('Error deleting QA:', err);
-      setSnackbar({ open: true, severity: 'error', message: 'Something went wrong. Please try again.' });
-    }
-  };
-
-  // CSV Upload
-  const handleCSVUpload = async (e) => {
-    try {
-      const file = e.target.files[0];
-      if (!file) return;
-      setUploading(true);
-      const formData = new FormData();
-      formData.append('file', file);
-      const res = await api.post('/upload/csv', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      const res = await api.get('/message/all', {
+        headers: { 'x-widget-token': widgetToken }
       });
-      fetchQAs();
-      const { validRows, totalRows, msg } = res.data;
-      const invalidRows = totalRows - validRows;
-      if (validRows > 0 && invalidRows) {
-        // Partial success
-        setSnackbar({
-          open: true,
-          severity: 'warning',
-          message: `Processed ${validRows} out of ${totalRows} rows successfully. ${invalidRows} rows were skipped.`
-        });
-      } else if (validRows > 0) {
-        // Full success
-        setSnackbar({
-          open: true,
-          severity: 'success',
-          message: `Your CSV was processed successfully. Added ${validRows} out of ${totalRows} rows.`
-        });
-      } else {
-        setSnackbar({
-          open: true,
-          severity: 'error',
-          message: msg || 'No valid rows found in CSV. Please check your file and try again.'
-        });
-      }
+      setHistory(res.data);
     } catch (err) {
-      const { msg } = err.response?.data || {};
-      console.error('Error uploading your CSV:', err);
-      if (msg) {
-        setSnackbar({
-          open: true,
-          severity: 'error',
-          message: msg
-        });
-      } else {
-        setSnackbar({
-          open: true,
-          severity: 'error',
-          message: 'Something went wrong. Please try again.'
-        });
-      }
+      console.error('Error fetching chat history:', err);
     } finally {
-      setUploading(false);
+      setLoading(false);
     }
   };
+
+  useEffect(() => { fetchWidgetToken(); }, []);
+  useEffect(() => { if (widgetToken) fetchHistory(); }, [widgetToken]);
+
+  if (loading) return <CircularProgress />;
+  if (history.length === 0) return <Typography>No chat history available.</Typography>;
 
   const columns = [
-    { field: 'question', headerName: 'Question', flex: 1 },
-    { field: 'answer', headerName: 'Answer', flex: 1 },
-    { field: 'updatedAt', headerName: 'Last Modified', width: 150, valueFormatter: (params) => formatDate(params) },
     {
-      field: 'actions',
-      headerName: 'Actions',
-      width: 120,
-      renderCell: (params) => (
-        <>
-          <IconButton
-            size="small"
-            onClick={() => {
-              setEditingQA(params.row);
-              setForm({
-                question: params.row.question,
-                answer: params.row.answer
-              });
-              setOpen(true);
+      field: 'session',
+      headerName: 'Session',
+      flex: 1,
+      renderCell: (params) => {
+        const createdAt = params.row.messages[0]?.timestamp || Date.now();
+        return (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              cursor: 'pointer'
             }}
+            onClick={() =>
+              setExpandedRow(expandedRow === params.row.conversationId ? null : params.row.conversationId)
+            }
           >
-            <Edit fontSize="small" />
-          </IconButton>
-          <IconButton size="small" onClick={() => confirmDelete(params.row)}>
-            <Delete fontSize="small" />
-          </IconButton>
-        </>
-      )
+            <ExpandMoreIcon
+              sx={{
+                transform: expandedRow === params.row.conversationId ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.2s'
+              }}
+            />
+            <Typography sx={{ ml: 1, color: 'rgb(103, 58, 183)' }}>
+              {`Session with User - ${new Date(createdAt).toLocaleString()}`}
+            </Typography>
+          </Box>
+        );
+      }
+    },
+    {
+      field: 'conversation',
+      headerName: 'Conversation',
+      flex: 2,
+      renderCell: (params) => {
+        if (expandedRow !== params.row.conversationId) return null;
+        return (
+          <Box sx={{ width: '100%' }}>
+            {params.row.messages.map((msg, i) => (
+              <Box key={i} sx={{ mb: 2 }}>
+                <strong>{msg.role}:</strong>
+                <ReactMarkdown
+                  components={{
+                    img: ({ node, ...props }) => (
+                      <img
+                        {...props}
+                        style={{ maxWidth: 150, maxHeight: 150, display: 'block', marginTop: 5 }}
+                      />
+                    )
+                  }}
+                >
+                  {msg.content}
+                </ReactMarkdown>
+              </Box>
+            ))}
+          </Box>
+        );
+      }
     }
   ];
 
+  const rows = history.map((conv) => ({
+    id: conv.conversationId,
+    conversationId: conv.conversationId,
+    messages: conv.messages
+  }));
+
   return (
-    <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h5" fontWeight={600}>
-          Q&A Content Management
-        </Typography>
-        <Box>
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={() => {
-              setEditingQA(null);
-              setForm({ question: '', answer: '' });
-              setOpen(true);
-            }}
-            sx={{ mr: 1 }}
-          >
-            Add New
-          </Button>
-          <Button variant="outlined" startIcon={uploading ? <CircularProgress size={20} /> : <Upload />} component="label">
-            Upload CSV
-            <input type="file" hidden accept=".csv" onChange={handleCSVUpload} />
-          </Button>
-        </Box>
-      </Box>
-
-      <Card>
-        <CardContent>
-          <DataGrid rows={qas} columns={columns} getRowId={(row) => row._id} autoHeight disableRowSelectionOnClick />
-        </CardContent>
-      </Card>
-
-      {/* Add/Edit Dialog */}
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{editingQA ? 'Edit QA' : 'Add QA'}</DialogTitle>
-        <DialogContent>
-          <TextField
-            fullWidth
-            label="Question"
-            margin="normal"
-            value={form.question}
-            onChange={(e) => setForm({ ...form, question: e.target.value })}
-          />
-          <TextField
-            fullWidth
-            label="Answer"
-            margin="normal"
-            multiline
-            rows={3}
-            value={form.answer}
-            onChange={(e) => setForm({ ...form, answer: e.target.value })}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleSave} disabled={loading}>
-            {loading ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'Save'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
-        <DialogTitle>Confirm Deletion</DialogTitle>
-        <DialogContent>
-          <Typography>
-            "Are you sure you want to delete <strong>{selectedQA?.question} </strong>?
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ px: 4 }}>
-          <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
-          <Button color="error" variant="contained" onClick={handleDelete}>
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <CustomSnackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        message={snackbar.message}
-        severity={snackbar.severity}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+    <Box sx={{ height: 600, width: '100%' }}>
+      <DataGrid
+        rows={rows}
+        columns={columns}
+        disableSelectionOnClick
+        autoHeight
+        pageSize={10}
       />
     </Box>
   );

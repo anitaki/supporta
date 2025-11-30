@@ -149,18 +149,14 @@ const searchQAs = async (req, res) => {
     businessId: req.businessId,
     conversationId,
   })
-    .sort({ timestamp: 1 })
-    .limit(10);
+    .sort({ timestamp: -1 })
+    .limit(5);
 
   const chatHistoryObj = {
     type: "chatHistory",
-    text: [
-      previousMessages.map((msg) =>
-        msg.role === "user"
-          ? `User: ${msg.content}`
-          : `Assistant: ${msg.content}`
-      ),
-    ].join("\n"),
+    text: previousMessages
+  .map(msg => msg.role === "user" ? `User: ${msg.content}` : `Assistant: ${msg.content}`)
+  .join("\n"),
   };
 
   // Get response from openAI

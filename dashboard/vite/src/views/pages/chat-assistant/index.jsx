@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Tabs, Tab, Typography, Box, Card, CardContent } from '@mui/material';
 import CustomizationTab from './CustomizationTab';
 import EmbedSnippetTab from './EmbedSnippetTab';
+import ChatHistoryTab from './ChatHistoryTab';
 
 export default function ChatAssistant() {
   const [activeTab, setActiveTab] = useState(() => {
@@ -30,6 +31,7 @@ export default function ChatAssistant() {
           </Tabs>
           {activeTab === 0 && <CustomizationTab />}
           {activeTab === 1 && <EmbedSnippetTab />}
+          {activeTab === 2 && <ChatHistoryTab />}
         </CardContent>
       </Card>
     </Box>

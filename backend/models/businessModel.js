@@ -24,7 +24,7 @@ const businessSchema = new Schema({
   },
   theme: {
     type: String,
-    enum: ["light", "dark"],
+    enum: ["light", "dark", "auto"],
     default: "auto"
   },
   color: {

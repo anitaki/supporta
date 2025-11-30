@@ -3,6 +3,7 @@ import { Box, TextField, Button, InputLabel, FormControl, Select, MenuItem, Typo
 import { MuiColorInput } from 'mui-color-input';
 import { useAuth } from '../../../contexts/AuthContext';
 import UploadLogo from './UploadLogo';
+import { CustomSnackbar } from '../../../ui-component/extended/Snackbar';
 
 export default function CustomizationTab() {
   const [greeting, setGreeting] = useState('');
@@ -13,7 +14,12 @@ export default function CustomizationTab() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [initialSettings, setInitialSettings] = useState(null);
-  console.log('🚀 ~ CustomizationTab ~ initialSettings:', initialSettings);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: ''
+  });
+
 
   const { api } = useAuth();
 
@@ -60,8 +66,6 @@ export default function CustomizationTab() {
         }
       });
 
-      console.log('res.data', res.data);
-
       // Update states with response
       setGreeting(res.data.greeting);
       setColor(res.data.color);
@@ -69,8 +73,10 @@ export default function CustomizationTab() {
       setTheme(res.data.theme);
       setLogo(res.data.logo);
       setInitialSettings(res.data);
+      setSnackbar({ open: true, severity: 'success', message: 'Your settings were saved successfully' });
     } catch (err) {
       console.error('Error saving settings:', err);
+      setSnackbar({ open: true, severity: 'error', message });
     } finally {
       setSaving(false);
     }
@@ -84,6 +90,11 @@ export default function CustomizationTab() {
     setFont(initialSettings.font);
     setTheme(initialSettings.theme);
     setLogo(initialSettings.logo);
+  };
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setSnackbar({ ...snackbar, open: false });
   };
 
   return (
@@ -176,6 +187,8 @@ export default function CustomizationTab() {
               <MenuItem value="Poppins">Poppins</MenuItem>
               <MenuItem value="Roboto">Roboto</MenuItem>
               <MenuItem value="Open Sans">Open Sans</MenuItem>
+              <MenuItem value="Times New Roman">Times New Roman</MenuItem>
+              <MenuItem value="cursive">Cursive</MenuItem>
             </Select>
           </FormControl>
         </Box>
@@ -183,7 +196,7 @@ export default function CustomizationTab() {
         <Divider />
 
         {/* Logo upload */}
-        <UploadLogo logo={logo} setLogo={setLogo} uploading={uploading} color={color} setUploading={setUploading}/>
+        <UploadLogo logo={logo} setLogo={setLogo} uploading={uploading} color={color} setUploading={setUploading} />
 
         {/* Cancel and Save button */}
         <Box display="flex" justifyContent="flex-end" width="100%" gap={1}>
@@ -195,6 +208,14 @@ export default function CustomizationTab() {
           </Button>
         </Box>
       </Box>
+      <CustomSnackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      />
     </form>
   );
 }
