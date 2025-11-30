@@ -64,10 +64,19 @@ npm install
 Create a `.env` file in the root directory:
 
 ```
-PORT=5000
 MONGO_URI=your_mongodb_connection_string
 B2_KEY_ID=your_backblaze_key_id
+B2_BUCKET = your_backblaze_bucket
 B2_APP_KEY=your_backblaze_app_key
+PORT = 8800
+NODE_ENV = production
+ACCESS_TOKEN_SECRET = your_access_token_secret
+REFRESH_TOKEN_SECRET = your_refresh_token_secret
+TOKEN_EXPIRATION = your_token_expiration_time
+REFRESH_TOKEN_EXPIRATION = your_refresh_token_expiration_time
+OPENAI_API_KEY = your_openai_key
+BACKEND_DOMAIN = your_backend_domain
+
 ```
 
 4. **Run the application**
