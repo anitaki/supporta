@@ -12,6 +12,8 @@ const {
 } = require("../utils/tokenUtils");
 const { request } = require("express");
 
+const backendUrl = process.env.BACKEND_DOMAIN
+
 const registerUser = async (req, res) => {
   // Validate request
   const errors = validationResult(req);
@@ -51,6 +53,7 @@ const registerUser = async (req, res) => {
     const newBusiness = new Business({
       name: businessName,
       owner: newUser._id,
+      logo: `${backendUrl}/logo.png`
     });
     const existingBusiness = await Business.findOne({  name: { $regex: `^${businessName}$`, $options: "i" } });
     if (existingBusiness)
