@@ -14,6 +14,7 @@ export default function CustomizationTab() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [initialSettings, setInitialSettings] = useState(null);
+  console.log("🚀 ~ CustomizationTab ~ initialSettings:", initialSettings)
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
