@@ -53,7 +53,7 @@ const registerUser = async (req, res) => {
     const newBusiness = new Business({
       name: businessName,
       owner: newUser._id,
-      logo: `${backendUrl}/logo.png`
+      logo: `https://supporta.onrender.com/logo.png`
     });
     const existingBusiness = await Business.findOne({  name: { $regex: `^${businessName}$`, $options: "i" } });
     if (existingBusiness)
