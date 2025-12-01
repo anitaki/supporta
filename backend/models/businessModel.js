@@ -20,7 +20,7 @@ const businessSchema = new Schema({
   },
   logo: {
     type: String,
-    default: `https://supporta.onrender.com/logo.png`,
+    default: `${backendUrl}/logo.png`,
   },
   theme: {
     type: String,
